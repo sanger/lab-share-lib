@@ -1,0 +1,57 @@
+#
+# Basic version of stack, for Github
+#
+version: "3.3"
+services:
+  lab-share-lib:
+    build: .
+    image: lab-share-lib
+    depends_on:
+      - rabbitmq
+      - schema_registry
+    environment:
+      REDPANDA_HOST: host.docker.internal
+      REDPANDA_PORT: 8081
+      RABBITMQ_HOST: host.docker.internal
+      RABBITMQ_PORT: 5672
+
+    entrypoint: "bash -c ./entrypoint.sh"
+
+  # An instance of RedPanda Schema Registry
+  # To run it as a standalone container:
+  #   docker network create redpanda-network
+  #   docker volume create redpanda-volume
+  #   docker run --name=schema_registry --net=redpanda-network -v "redpanda-volume:/var/lib/redpanda/data" -p 8081:8081 \
+  #     docker.vectorized.io/vectorized/redpanda start --overprovisioned --smp 1 --memory 250M
+  schema_registry:
+    image: docker.vectorized.io/vectorized/redpanda
+    networks:
+      - redpanda-network
+    ports:
+      - "8081:8081"
+    volumes:
+      - redpanda-volume:/var/lib/redpanda/data
+    #mem_limit: 250m
+    command:
+      - start
+      - --overprovisioned
+      - --smp 1
+      - --memory 250M
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: heron-rabbitmq
+    ports:
+      - "5672:5672"
+      - "8080:15672"
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - rabbitmq-volume:/var/lib/rabbitmq/mnesia
+
+volumes:
+  redpanda-volume:
+  rabbitmq-volume:
+
+networks:
+  external:
+  redpanda-network:

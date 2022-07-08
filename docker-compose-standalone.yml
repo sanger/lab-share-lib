@@ -1,0 +1,9 @@
+#
+# Basic version of stack, for Github
+#
+version: "3.3"
+services:
+  lab-share-lib:
+    build: .
+    image: lab-share-lib
+    entrypoint: "bash -c ./entrypoint.sh"
