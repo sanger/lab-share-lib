@@ -1,6 +1,6 @@
 [project]
 name = "lab-share-lib"
-version = "0.0.1"
+dynamic = ['version']
 authors = [
   { name="Stuart McHattie", email="sm49@sanger.ac.uk" },
 ]
@@ -27,8 +27,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = ".release_version"
-pattern = "'b(?P<version>)'"
+path = ".release-version"
+pattern = "(?P<version>\\d+\\.\\d+\\.\\d+)"
 
 
 [tool.black]
