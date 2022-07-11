@@ -17,6 +17,10 @@ jobs:
 
       - uses: nelonoel/branch-name@v1.0.1
 
+      # Actually run our build
+      - name: Create Build
+        run: python -m build
+
       # Create a release tag based on the branch name and .release-version file
       - name: Set release tag
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
