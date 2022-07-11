@@ -16,6 +16,8 @@ pytest-freezegun = "*"
 types-python-dateutil = "*"
 responses = "*"
 types-requests = "*"
+build = "*"
+hatchling = "*"
 
 [packages]
 colorlog = "~=6.6"
