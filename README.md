@@ -27,7 +27,7 @@ Use pipenv to install the required python packages for the application and devel
 Run this command inside the project you want to add this library:
 
 ```bash
-    pipenv install -e git+https://github.com/sanger/lab-share-lib#egg=lab-share-lib
+    pipenv install -e git+https://github.com/sanger/lab-share-lib@v0.1.2#egg=lab-share-lib
 ```
 
 ## Testing
