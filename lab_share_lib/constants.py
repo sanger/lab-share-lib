@@ -1,7 +1,7 @@
 from typing import Final
 
-RABBITMQ_HEADER_KEY_SUBJECT = "subject"
-RABBITMQ_HEADER_KEY_VERSION = "version"
+RABBITMQ_HEADER_KEY_SUBJECT: Final[str] = "subject"
+RABBITMQ_HEADER_KEY_VERSION: Final[str] = "version"
 
 ###
 # Logger names
