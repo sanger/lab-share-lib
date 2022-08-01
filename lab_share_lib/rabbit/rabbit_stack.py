@@ -1,3 +1,4 @@
+from lab_share_lib.helpers.general_helpers import get_config
 from lab_share_lib.processing.rabbit_message_processor import RabbitMessageProcessor
 from lab_share_lib.rabbit.background_consumer import BackgroundConsumer
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
@@ -6,8 +7,8 @@ from lab_share_lib.types import RabbitServerDetails
 
 
 class RabbitStack:
-    def __init__(self, config):
-        self._config = config
+    def __init__(self, settings_module=""):
+        self._config, settings_module = get_config(settings_module)
 
         rabbit_crud_queue = self._config.RABBITMQ_CRUD_QUEUE
         self._background_consumer = BackgroundConsumer(
@@ -34,7 +35,11 @@ class RabbitStack:
         return SchemaRegistry(redpanda_url, redpanda_api_key)
 
     def _rabbit_message_processor(self):
-        basic_publisher = BasicPublisher(self._rabbit_server_details())
+        basic_publisher = BasicPublisher(
+            self._rabbit_server_details(),
+            self._config.RABBITMQ_PUBLISH_RETRY_DELAY,
+            self._config.RABBITMQ_PUBLISH_RETRIES,
+        )
         return RabbitMessageProcessor(self._schema_registry(), basic_publisher, self._config)
 
     def bring_stack_up(self):
