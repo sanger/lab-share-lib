@@ -15,13 +15,13 @@ DEFAULT_SERVER_DETAILS = RabbitServerDetails(
 )
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def logger():
     with patch("lab_share_lib.rabbit.basic_publisher.LOGGER") as logger:
         yield logger
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def message_logger():
     with patch("lab_share_lib.rabbit.basic_publisher.MESSAGE_LOGGER") as message_logger:
         yield message_logger
@@ -29,10 +29,10 @@ def message_logger():
 
 @pytest.fixture
 def channel():
-    yield MagicMock()
+    return MagicMock()
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def blocking_connection(channel):
     with patch("lab_share_lib.rabbit.basic_publisher.BlockingConnection") as blocking_connection:
         blocking_connection.return_value.channel.return_value = channel
