@@ -52,13 +52,6 @@ def update_sample_processor():
     yield MagicMock(BaseProcessor)
 
 
-# @pytest.fixture
-# def subject(config, create_plate_processor, update_sample_processor):
-#     subject = RabbitMessageProcessor(config)
-#     subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] = create_plate_processor.return_value
-#     subject._processors[RABBITMQ_SUBJECT_UPDATE_SAMPLE] = update_sample_processor.return_value
-#     yield subject
-
 
 @pytest.fixture
 def subject(config, create_plate_processor, update_sample_processor):
