@@ -40,7 +40,7 @@ def blocking_connection(channel):
 
 
 @pytest.fixture
-def subject(blocking_connection):
+def subject():
     return BasicPublisher(DEFAULT_SERVER_DETAILS, 0, 5)
 
 
