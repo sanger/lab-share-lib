@@ -52,7 +52,6 @@ def update_sample_processor():
     yield MagicMock(BaseProcessor)
 
 
-
 @pytest.fixture
 def subject(config, create_plate_processor, update_sample_processor):
     with patch(
