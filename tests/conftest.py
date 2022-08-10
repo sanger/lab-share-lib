@@ -15,6 +15,7 @@ CONFIG = {
     "RABBITMQ_FEEDBACK_EXCHANGE": "test.exchange",
     "RABBITMQ_PUBLISH_RETRY_DELAY": 5,
     "RABBITMQ_PUBLISH_RETRIES": 36,  # 3 minutes of retries
+
     ###
     # RedPanda details
     ###
