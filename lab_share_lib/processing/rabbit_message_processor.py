@@ -1,26 +1,31 @@
 import logging
-from typing import cast
+from typing import Any, Dict, Optional, cast
 
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.processing.rabbit_message import RabbitMessage
 from lab_share_lib.rabbit.avro_encoder import AvroEncoder
+from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
 
 LOGGER = logging.getLogger(__name__)
 
 
 class RabbitMessageProcessor:
-    def __init__(self, schema_registry, basic_publisher, config):
-        self._schema_registry = schema_registry
-        self._basic_publisher = basic_publisher
+    def __init__(self, config):
+        self._schema_registry = get_redpanda_schema_registry(config)
+        self._basic_publisher = get_basic_publisher(config)
         self._config = config
 
-        self._build_processors()
+        self.__processors: Optional[Dict[str, Any]] = None
 
-    def _build_processors(self):
-        self._processors = {}
-        for subject in self._config.PROCESSORS.keys():
-            self._processors[subject] = self._build_processor_for_subject(subject)
+    @property
+    def _processors(self) -> Dict[str, Any]:
+        if self.__processors is None:
+            self.__processors = {
+                subject: self._build_processor_for_subject(subject) for subject in self._config.PROCESSORS.keys()
+            }
+
+        return self.__processors
 
     def _build_processor_for_subject(self, subject: str) -> BaseProcessor:
         processor_instance_builder = self._config.PROCESSORS[subject]
@@ -34,7 +39,7 @@ class RabbitMessageProcessor:
             message.decode(AvroEncoder(self._schema_registry, message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
-            raise  # Cause the consumer to restart and try this message again.  Ideally we will delay the consumer.
+            raise  # Cause the consumer to restart and try this message again.
         except Exception as ex:
             LOGGER.error(f"Unrecoverable error while decoding RabbitMQ message: {type(ex)} {str(ex)}")
             return False  # Send the message to dead letters.

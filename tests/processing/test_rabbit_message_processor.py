@@ -1,19 +1,23 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
 
-from lab_share_lib.constants import RABBITMQ_HEADER_KEY_SUBJECT, RABBITMQ_HEADER_KEY_VERSION
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_SUBJECT,
+    RABBITMQ_HEADER_KEY_VERSION,
+)
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.rabbit_message_processor import RabbitMessageProcessor
 from lab_share_lib.processing.base_processor import BaseProcessor
 
-RABBITMQ_SUBJECT_EXAMPLE = "MyOwnSubject"
-
 SCHEMA_REGISTRY = MagicMock()
 BASIC_PUBLISHER = MagicMock()
-PROCESSOR = MagicMock(BaseProcessor)
+
+RABBITMQ_SUBJECT_CREATE_PLATE = "create-plate"
+RABBITMQ_SUBJECT_UPDATE_SAMPLE = "update-sample"
 
 HEADERS = {
-    RABBITMQ_HEADER_KEY_SUBJECT: RABBITMQ_SUBJECT_EXAMPLE,
+    RABBITMQ_HEADER_KEY_SUBJECT: RABBITMQ_SUBJECT_CREATE_PLATE,
     RABBITMQ_HEADER_KEY_VERSION: "3",
 }
 MESSAGE_BODY = "Body"
@@ -25,14 +29,14 @@ def logger():
         yield logger
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def rabbit_message():
     with patch("lab_share_lib.processing.rabbit_message_processor.RabbitMessage") as rabbit_message:
         rabbit_message.return_value.subject = HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
         yield rabbit_message
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def avro_encoder():
     with patch("lab_share_lib.processing.rabbit_message_processor.AvroEncoder") as avro_encoder:
         yield avro_encoder
@@ -44,10 +48,22 @@ def create_plate_processor():
 
 
 @pytest.fixture
-def subject(config, create_plate_processor, rabbit_message, avro_encoder):
-    subject = RabbitMessageProcessor(SCHEMA_REGISTRY, BASIC_PUBLISHER, config)
-    subject._processors = {RABBITMQ_SUBJECT_EXAMPLE: create_plate_processor.return_value}
-    yield subject
+def update_sample_processor():
+    yield MagicMock(BaseProcessor)
+
+
+@pytest.fixture
+def subject(config, create_plate_processor, update_sample_processor):
+    with patch(
+        "lab_share_lib.processing.rabbit_message_processor.get_redpanda_schema_registry", return_value=SCHEMA_REGISTRY
+    ):
+        with patch(
+            "lab_share_lib.processing.rabbit_message_processor.get_basic_publisher", return_value=BASIC_PUBLISHER
+        ):
+            subject = RabbitMessageProcessor(config)
+            subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] = create_plate_processor.return_value
+            subject._processors[RABBITMQ_SUBJECT_UPDATE_SAMPLE] = update_sample_processor.return_value
+            yield subject
 
 
 def test_constructor_stored_passed_values(subject, config):
@@ -57,8 +73,8 @@ def test_constructor_stored_passed_values(subject, config):
 
 
 def test_constructor_populated_processors_correctly(subject, create_plate_processor):
-    assert list(subject._processors.keys()) == [RABBITMQ_SUBJECT_EXAMPLE]
-    assert subject._processors[RABBITMQ_SUBJECT_EXAMPLE] == create_plate_processor.return_value
+    assert list(subject._processors.keys()) == [RABBITMQ_SUBJECT_CREATE_PLATE, RABBITMQ_SUBJECT_UPDATE_SAMPLE]
+    assert subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] == create_plate_processor.return_value
 
 
 def test_process_message_decodes_the_message(subject, rabbit_message, avro_encoder):
