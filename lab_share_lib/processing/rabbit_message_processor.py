@@ -48,11 +48,11 @@ class RabbitMessageProcessor:
             LOGGER.error("RabbitMQ message received containing multiple AVRO encoded messages.")
             return False  # Send the message to dead letters.
 
-        try:
-            return self._processors[message.subject].process(message)
-        except KeyError:
+        if message.subject not in self._processors.keys():
             LOGGER.error(
                 f"Received message has subject '{message.subject}'"
                 " but there is no implemented processor for this subject."
             )
             return False  # Send the message to dead letters.
+
+        return self._processors[message.subject].process(message)
