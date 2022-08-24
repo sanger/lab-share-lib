@@ -2,13 +2,22 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
 
-from lab_share_lib.rabbit.avro_encoder import AvroEncoder
+from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
-SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "key": "value" }', RESPONSE_KEY_VERSION: 7}
-SCHEMA_OBJECT = {"key": "value"}
+SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "name": "sampleName", "type": "string" }', RESPONSE_KEY_VERSION: 7}
+SCHEMA_OBJECT = {"name": "sampleName", "type": "string"}
 MESSAGE_BODY = "The written message."
+
+
+@pytest.fixture
+def binary_message():
+    f = open("tests/data/test1.avro.dat", "rb")
+    data = f.read()
+    f.close()
+
+    yield data
 
 
 @pytest.fixture
@@ -28,6 +37,11 @@ def fastavro():
 @pytest.fixture
 def subject(schema_registry):
     return AvroEncoder(schema_registry, SUBJECT)
+
+
+@pytest.fixture
+def subject_binary(schema_registry):
+    return AvroEncoderBinary(schema_registry, SUBJECT)
 
 
 def test_constructor_stores_passed_values(subject, schema_registry):
@@ -89,3 +103,42 @@ def test_decode_decodes_the_message(subject, fastavro, schema_version):
     assert string_reader.read() == MESSAGE_BODY
 
     assert result == SCHEMA_OBJECT
+
+
+@pytest.mark.parametrize("schema_version", ["5", "42"])
+def test_encode_binary_encodes_the_message(subject_binary, schema_version):
+    records = [MESSAGE_BODY]
+
+    message = subject_binary.encode(records, schema_version)
+
+    assert message.body != records
+    assert message.version == "7"
+
+
+@pytest.mark.parametrize("schema_version", ["5", "42"])
+def test_decode_binary_decodes_the_message(subject_binary, schema_version, binary_message):
+    records = [MESSAGE_BODY]
+
+    result = subject_binary.decode(binary_message, schema_version)
+
+    assert list(result) == records
+
+
+@pytest.mark.parametrize("schema_version", ["5", "42"])
+def test_json_both_encode_and_decode_actions_work_together(subject, schema_version):
+    records = [MESSAGE_BODY]
+
+    message = subject.encode(records, schema_version)
+    result = subject.decode(message.body, schema_version)
+
+    assert list(result) == records
+
+
+@pytest.mark.parametrize("schema_version", ["5", "42"])
+def test_binary_both_encode_and_decode_actions_work_together(subject_binary, schema_version):
+    records = [MESSAGE_BODY]
+
+    message = subject_binary.encode(records, schema_version)
+    result = subject_binary.decode(message.body, schema_version)
+
+    assert list(result) == records

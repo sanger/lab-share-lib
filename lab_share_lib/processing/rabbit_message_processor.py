@@ -4,10 +4,22 @@ from typing import Any, Dict, Optional, cast
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.processing.rabbit_message import RabbitMessage
-from lab_share_lib.rabbit.avro_encoder import AvroEncoder
+from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary, AvroEncoderJson
 from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
+)
 
 LOGGER = logging.getLogger(__name__)
+
+ENCODERS = {
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY: AvroEncoderBinary,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON: AvroEncoderJson,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT: AvroEncoderJson,
+}
 
 
 class RabbitMessageProcessor:
@@ -33,10 +45,21 @@ class RabbitMessageProcessor:
             BaseProcessor, processor_instance_builder(self._schema_registry, self._basic_publisher, self._config)
         )
 
+    def build_avro_encoder(self, encoder_type, subject):
+        if encoder_type not in ENCODERS.keys():
+            raise Exception(f"Encoder type {encoder_type} not defined")
+
+        return ENCODERS[encoder_type](self._schema_registry, subject)
+
+    def encoder_type(self, headers):
+        if RABBITMQ_HEADER_KEY_ENCODER_TYPE not in headers.keys():
+            return RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT
+        return headers[RABBITMQ_HEADER_KEY_ENCODER_TYPE]
+
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         try:
-            message.decode(AvroEncoder(self._schema_registry, message.subject))
+            message.decode(self.build_avro_encoder(self.encoder_type(headers), message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
