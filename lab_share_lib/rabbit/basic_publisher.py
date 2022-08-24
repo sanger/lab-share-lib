@@ -19,7 +19,13 @@ MESSAGE_LOGGER = logging.getLogger(LOGGER_NAME_RABBIT_MESSAGES)
 
 
 class BasicPublisher:
-    def __init__(self, server_details: RabbitServerDetails, publish_retry_delay: int, publish_max_retries: int):
+    def __init__(
+        self,
+        server_details: RabbitServerDetails,
+        publish_retry_delay: int,
+        publish_max_retries: int,
+        verify_cert: bool = True,
+    ):
         self._publish_retry_delay = publish_retry_delay
         self._publish_max_retries = publish_max_retries
         credentials = PlainCredentials(server_details.username, server_details.password)
@@ -32,7 +38,9 @@ class BasicPublisher:
 
         if server_details.uses_ssl:
             cafile = os.getenv("REQUESTS_CA_BUNDLE")
+            verify_mode = ssl.CERT_REQUIRED if verify_cert else ssl.CERT_NONE
             ssl_context = ssl.create_default_context(cafile=cafile)
+            ssl_context.verify_mode = verify_mode
             self._connection_params.ssl_options = SSLOptions(ssl_context)
 
     def publish_message(self, exchange, routing_key, body, subject, schema_version):
