@@ -6,7 +6,14 @@ import pytest
 from pika import PlainCredentials
 from pika.spec import PERSISTENT_DELIVERY_MODE
 
-from lab_share_lib.constants import RABBITMQ_HEADER_KEY_SUBJECT, RABBITMQ_HEADER_KEY_VERSION
+from lab_share_lib.processing.rabbit_message import RabbitMessage
+
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_SUBJECT,
+    RABBITMQ_HEADER_KEY_VERSION,
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+)
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 from lab_share_lib.types import RabbitServerDetails
 
@@ -164,3 +171,48 @@ def test_configure_verify_cert_enables_verify_cert(subject):
 
     assert context.check_hostname is True
     assert context.verify_mode is ssl.CERT_REQUIRED
+
+
+def test_publish_rabbit_message_with_encoder_type_set(subject):
+    m = RabbitMessage(
+        encoded_body="body".encode(),
+        headers={
+            RABBITMQ_HEADER_KEY_ENCODER_TYPE: "testing-encoding",
+            RABBITMQ_HEADER_KEY_VERSION: "1",
+            RABBITMQ_HEADER_KEY_SUBJECT: "test-subject",
+        },
+    )
+    with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
+
+        subject.publish_rabbit_message(m, "exchange", "routing_key")
+
+        publish.assert_called_once_with(
+            exchange="exchange",
+            routing_key="routing_key",
+            body="body".encode(),
+            subject="test-subject",
+            schema_version="1",
+            encoder_type="testing-encoding",
+        )
+
+
+def test_publish_rabbit_message_without_encoder_type_set(subject):
+    m = RabbitMessage(
+        encoded_body="body".encode(),
+        headers={
+            RABBITMQ_HEADER_KEY_VERSION: "1",
+            RABBITMQ_HEADER_KEY_SUBJECT: "test-subject",
+        },
+    )
+    with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
+
+        subject.publish_rabbit_message(m, "exchange", "routing_key")
+
+        publish.assert_called_once_with(
+            exchange="exchange",
+            routing_key="routing_key",
+            body="body".encode(),
+            subject="test-subject",
+            schema_version="1",
+            encoder_type=RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+        )

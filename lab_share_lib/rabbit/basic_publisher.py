@@ -6,6 +6,7 @@ import time
 from pika import BasicProperties, BlockingConnection, ConnectionParameters, PlainCredentials, SSLOptions
 from pika.exceptions import UnroutableError
 from pika.spec import PERSISTENT_DELIVERY_MODE
+from lab_share_lib.processing.rabbit_message import RabbitMessage
 
 
 from lab_share_lib.constants import (
@@ -49,6 +50,16 @@ class BasicPublisher:
         verify_mode = ssl.CERT_REQUIRED if verify_cert else ssl.CERT_NONE
         ssl_context.check_hostname = verify_cert
         ssl_context.verify_mode = verify_mode
+
+    def publish_rabbit_message(self, message: RabbitMessage, exchange: str, routing_key: str) -> None:
+        self.publish_message(
+            exchange=exchange,
+            routing_key=routing_key,
+            body=message.encoded_body,
+            subject=message.subject,
+            schema_version=message.schema_version,
+            encoder_type=message.encoder_type,
+        )
 
     def publish_message(
         self,
