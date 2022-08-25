@@ -10,8 +10,10 @@ from pika.spec import PERSISTENT_DELIVERY_MODE
 
 from lab_share_lib.constants import (
     LOGGER_NAME_RABBIT_MESSAGES,
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
     RABBITMQ_HEADER_KEY_SUBJECT,
     RABBITMQ_HEADER_KEY_VERSION,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
 )
 from lab_share_lib.types import RabbitServerDetails
 
@@ -48,7 +50,15 @@ class BasicPublisher:
         ssl_context.check_hostname = verify_cert
         ssl_context.verify_mode = verify_mode
 
-    def publish_message(self, exchange, routing_key, body, subject, schema_version):
+    def publish_message(
+        self,
+        exchange,
+        routing_key,
+        body,
+        subject,
+        schema_version,
+        encoder_type=RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+    ):
         LOGGER.info(
             f"Publishing message to exchange '{exchange}', routing key '{routing_key}', "
             f"schema subject '{subject}', schema version '{schema_version}'."
@@ -59,6 +69,7 @@ class BasicPublisher:
             headers={
                 RABBITMQ_HEADER_KEY_SUBJECT: subject,
                 RABBITMQ_HEADER_KEY_VERSION: schema_version,
+                RABBITMQ_HEADER_KEY_ENCODER_TYPE: encoder_type,
             },
         )
 
