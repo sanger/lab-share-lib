@@ -63,7 +63,7 @@ class BasicPublisher:
             f"Publishing message to exchange '{exchange}', routing key '{routing_key}', "
             f"schema subject '{subject}', schema version '{schema_version}'."
         )
-        MESSAGE_LOGGER.info(f"Published message body:  {body.decode()}")
+        MESSAGE_LOGGER.info(f"Published message body:  {body}")
         properties = BasicProperties(
             delivery_mode=PERSISTENT_DELIVERY_MODE,
             headers={

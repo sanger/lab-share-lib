@@ -268,7 +268,7 @@ class AsyncConsumer(object):
         :param bytes body: The message body
         """
         LOGGER.info(f"Received message # {basic_deliver.delivery_tag}")
-        MESSAGE_LOGGER.info(f"Received message # {basic_deliver.delivery_tag} with body:  {body.decode()}")
+        MESSAGE_LOGGER.info(f"Received message # {basic_deliver.delivery_tag} with body:  {body}")
         delivery_tag = basic_deliver.delivery_tag
 
         try:

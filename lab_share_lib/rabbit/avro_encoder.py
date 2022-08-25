@@ -50,7 +50,7 @@ class AvroEncoderJson(AvroEncoderAbstract):
         LOGGER.debug("Decoding AVRO message.")
 
         schema_response = self._schema_response(version)
-        string_reader = StringIO(message.decode("utf-8"))
+        string_reader = StringIO(message.decode())
 
         return fastavro.json_reader(string_reader, self._schema(schema_response))
 
