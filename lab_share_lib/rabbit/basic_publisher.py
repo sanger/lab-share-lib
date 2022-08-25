@@ -38,10 +38,17 @@ class BasicPublisher:
 
         if server_details.uses_ssl:
             cafile = os.getenv("REQUESTS_CA_BUNDLE")
-            verify_mode = ssl.CERT_REQUIRED if verify_cert else ssl.CERT_NONE
-            ssl_context = ssl.create_default_context(cafile=cafile)
-            ssl_context.verify_mode = verify_mode
+            ssl_context = self.build_ssl_context(cafile=cafile, verify_cert=verify_cert)
             self._connection_params.ssl_options = SSLOptions(ssl_context)
+
+    def build_ssl_context(self, cafile: str, verify_cert: bool = True):
+        ssl_context = ssl.create_default_context(cafile=cafile)
+
+        verify_mode = ssl.CERT_REQUIRED if verify_cert else ssl.CERT_NONE
+        ssl_context.verify_mode = verify_mode
+        ssl_context.check_hostname = verify_cert
+
+        return ssl_context
 
     def publish_message(self, exchange, routing_key, body, subject, schema_version):
         LOGGER.info(
