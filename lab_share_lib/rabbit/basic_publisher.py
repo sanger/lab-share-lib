@@ -7,6 +7,7 @@ from pika import BasicProperties, BlockingConnection, ConnectionParameters, Plai
 from pika.exceptions import UnroutableError
 from pika.spec import PERSISTENT_DELIVERY_MODE
 
+
 from lab_share_lib.constants import (
     LOGGER_NAME_RABBIT_MESSAGES,
     RABBITMQ_HEADER_KEY_SUBJECT,
@@ -38,17 +39,14 @@ class BasicPublisher:
 
         if server_details.uses_ssl:
             cafile = os.getenv("REQUESTS_CA_BUNDLE")
-            ssl_context = self.build_ssl_context(cafile=cafile, verify_cert=verify_cert)
+            ssl_context = ssl.create_default_context(cafile=cafile)
+            self.configure_verify_cert(ssl_context, verify_cert=verify_cert)
             self._connection_params.ssl_options = SSLOptions(ssl_context)
 
-    def build_ssl_context(self, cafile: str, verify_cert: bool = True):
-        ssl_context = ssl.create_default_context(cafile=cafile)
-
+    def configure_verify_cert(self, ssl_context: ssl.SSLContext, verify_cert: bool = True) -> None:
         verify_mode = ssl.CERT_REQUIRED if verify_cert else ssl.CERT_NONE
-        ssl_context.verify_mode = verify_mode
         ssl_context.check_hostname = verify_cert
-
-        return ssl_context
+        ssl_context.verify_mode = verify_mode
 
     def publish_message(self, exchange, routing_key, body, subject, schema_version):
         LOGGER.info(

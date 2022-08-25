@@ -1,6 +1,6 @@
 from typing import cast
 from unittest.mock import MagicMock, patch
-
+import ssl
 import pika
 import pytest
 from pika import PlainCredentials
@@ -148,3 +148,19 @@ def test_publish_message_stops_retrying_after_max_retries(subject, channel, logg
     logger.error.assert_called_once()
     log_message = logger.error.call_args.args[0]
     assert "NOT PUBLISHED" in log_message
+
+
+def test_configure_verify_cert_disables_verify_cert(subject):
+    context = ssl.create_default_context()
+    subject.configure_verify_cert(context, verify_cert=False)
+
+    assert context.check_hostname is False
+    assert context.verify_mode is ssl.CERT_NONE
+
+
+def test_configure_verify_cert_enables_verify_cert(subject):
+    context = ssl.create_default_context()
+    subject.configure_verify_cert(context, verify_cert=True)
+
+    assert context.check_hostname is True
+    assert context.verify_mode is ssl.CERT_REQUIRED
