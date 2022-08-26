@@ -2,7 +2,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lab_share_lib.constants import RABBITMQ_HEADER_KEY_SUBJECT, RABBITMQ_HEADER_KEY_VERSION
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+    RABBITMQ_HEADER_KEY_SUBJECT,
+    RABBITMQ_HEADER_KEY_VERSION,
+)
 from lab_share_lib.processing.rabbit_message import RabbitMessage
 
 HEADERS = {
@@ -66,3 +71,13 @@ def test_contains_single_message_gives_correct_response(subject, decoded_list, e
 def test_message_returns_first_decoded_list_item(subject, decoded_list, expected):
     subject._decoded_list = decoded_list
     assert subject.message == expected
+
+
+def test_encoder_type(subject):
+    assert subject.encoder_type is RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT
+
+    h2 = HEADERS.copy()
+    h2[RABBITMQ_HEADER_KEY_ENCODER_TYPE] = "my-encoding"
+    m2 = RabbitMessage(h2, ENCODED_BODY)
+
+    assert m2.encoder_type == "my-encoding"
