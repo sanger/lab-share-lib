@@ -7,7 +7,6 @@ from lab_share_lib.processing.rabbit_message import RabbitMessage
 from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary, AvroEncoderJson
 from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
 from lab_share_lib.constants import (
-    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,

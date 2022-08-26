@@ -4,9 +4,9 @@ from io import StringIO, BytesIO
 from typing import Any, List, NamedTuple
 
 import fastavro
-from lab_share_lib.processing.rabbit_message import RabbitMessage
 
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
+from lab_share_lib.constants import AVRO_BINARY_COMPRESSION_CODEC_DEFAULT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,9 +34,6 @@ class AvroEncoderAbstract:
     def _schema_version(self, schema_response):
         return schema_response[RESPONSE_KEY_VERSION]
 
-    def build_rabbit_message(message: EncodedMessage) -> RabbitMessage:
-        RabbitMessage(encoded_body = message.body)
-
 
 class AvroEncoderJson(AvroEncoderAbstract):
     def encode(self, records: List, version: str = None) -> EncodedMessage:
@@ -60,13 +57,20 @@ class AvroEncoderJson(AvroEncoderAbstract):
 
 
 class AvroEncoderBinary(AvroEncoderAbstract):
+    def __init__(self, schema_registry, subject):
+        super().__init__(schema_registry, subject)
+        self._compression_codec = AVRO_BINARY_COMPRESSION_CODEC_DEFAULT
+
+    def set_compression_codec(self, compression_codec: str = AVRO_BINARY_COMPRESSION_CODEC_DEFAULT) -> None:
+        self._compression_codec = compression_codec
+
     def encode(self, records: List, version: str = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
 
         schema_response = self._schema_response(version)
         bytes_writer = BytesIO()
 
-        fastavro.writer(bytes_writer, self._schema(schema_response), records)
+        fastavro.writer(bytes_writer, self._schema(schema_response), records, codec=self._compression_codec)
 
         return EncodedMessage(body=bytes_writer.getvalue(), version=str(self._schema_version(schema_response)))
 
