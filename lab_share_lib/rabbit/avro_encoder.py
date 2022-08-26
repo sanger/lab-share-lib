@@ -4,6 +4,7 @@ from io import StringIO, BytesIO
 from typing import Any, List, NamedTuple
 
 import fastavro
+from lab_share_lib.processing.rabbit_message import RabbitMessage
 
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
@@ -32,6 +33,9 @@ class AvroEncoderAbstract:
 
     def _schema_version(self, schema_response):
         return schema_response[RESPONSE_KEY_VERSION]
+
+    def build_rabbit_message(message: EncodedMessage) -> RabbitMessage:
+        RabbitMessage(encoded_body = message.body)
 
 
 class AvroEncoderJson(AvroEncoderAbstract):
