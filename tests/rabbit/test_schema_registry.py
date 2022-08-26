@@ -3,6 +3,7 @@ import responses
 
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.rabbit.schema_registry import SchemaRegistry
+from unittest.mock import patch
 
 BASE_URI = "http://schema_registry.com"
 API_KEY = "EA7G00DF00D"
@@ -17,6 +18,33 @@ def subject():
 def test_constructor_stores_values_correctly(subject):
     assert subject._base_uri == BASE_URI
     assert subject._api_key == API_KEY
+
+
+def test_by_default_enable_verify_certs():
+    subject = SchemaRegistry(BASE_URI, API_KEY)
+
+    with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
+        subject.get_schema("test", "1")
+
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, True)
+
+
+def test_can_enable_verify_certs():
+    subject = SchemaRegistry(BASE_URI, API_KEY, True)
+
+    with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
+        subject.get_schema("test", "1")
+
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, True)
+
+
+def test_can_disable_verify_certs():
+    subject = SchemaRegistry(BASE_URI, API_KEY, False)
+
+    with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
+        subject.get_schema("test", "1")
+
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, False)
 
 
 @pytest.mark.parametrize(

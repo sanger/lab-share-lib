@@ -1,12 +1,19 @@
 from typing import cast
 from unittest.mock import MagicMock, patch
-
+import ssl
 import pika
 import pytest
 from pika import PlainCredentials
 from pika.spec import PERSISTENT_DELIVERY_MODE
 
-from lab_share_lib.constants import RABBITMQ_HEADER_KEY_SUBJECT, RABBITMQ_HEADER_KEY_VERSION
+from lab_share_lib.processing.rabbit_message import RabbitMessage
+
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_SUBJECT,
+    RABBITMQ_HEADER_KEY_VERSION,
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+)
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 from lab_share_lib.types import RabbitServerDetails
 
@@ -148,3 +155,64 @@ def test_publish_message_stops_retrying_after_max_retries(subject, channel, logg
     logger.error.assert_called_once()
     log_message = logger.error.call_args.args[0]
     assert "NOT PUBLISHED" in log_message
+
+
+def test_configure_verify_cert_disables_verify_cert(subject):
+    context = ssl.create_default_context()
+    subject.configure_verify_cert(context, verify_cert=False)
+
+    assert context.check_hostname is False
+    assert context.verify_mode is ssl.CERT_NONE
+
+
+def test_configure_verify_cert_enables_verify_cert(subject):
+    context = ssl.create_default_context()
+    subject.configure_verify_cert(context, verify_cert=True)
+
+    assert context.check_hostname is True
+    assert context.verify_mode is ssl.CERT_REQUIRED
+
+
+def test_publish_rabbit_message_with_encoder_type_set(subject):
+    m = RabbitMessage(
+        encoded_body="body".encode(),
+        headers={
+            RABBITMQ_HEADER_KEY_ENCODER_TYPE: "testing-encoding",
+            RABBITMQ_HEADER_KEY_VERSION: "1",
+            RABBITMQ_HEADER_KEY_SUBJECT: "test-subject",
+        },
+    )
+    with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
+
+        subject.publish_rabbit_message(m, "exchange", "routing_key")
+
+        publish.assert_called_once_with(
+            exchange="exchange",
+            routing_key="routing_key",
+            body="body".encode(),
+            subject="test-subject",
+            schema_version="1",
+            encoder_type="testing-encoding",
+        )
+
+
+def test_publish_rabbit_message_without_encoder_type_set(subject):
+    m = RabbitMessage(
+        encoded_body="body".encode(),
+        headers={
+            RABBITMQ_HEADER_KEY_VERSION: "1",
+            RABBITMQ_HEADER_KEY_SUBJECT: "test-subject",
+        },
+    )
+    with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
+
+        subject.publish_rabbit_message(m, "exchange", "routing_key")
+
+        publish.assert_called_once_with(
+            exchange="exchange",
+            routing_key="routing_key",
+            body="body".encode(),
+            subject="test-subject",
+            schema_version="1",
+            encoder_type=RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+        )

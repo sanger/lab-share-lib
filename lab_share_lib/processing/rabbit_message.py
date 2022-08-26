@@ -1,4 +1,9 @@
-from lab_share_lib.constants import RABBITMQ_HEADER_KEY_SUBJECT, RABBITMQ_HEADER_KEY_VERSION
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_KEY_ENCODER_TYPE,
+    RABBITMQ_HEADER_KEY_SUBJECT,
+    RABBITMQ_HEADER_KEY_VERSION,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+)
 
 
 class RabbitMessage:
@@ -10,6 +15,12 @@ class RabbitMessage:
         self._schema_version = None
         self._decoded_list = None
         self._message = None
+
+    @property
+    def encoder_type(self):
+        if RABBITMQ_HEADER_KEY_ENCODER_TYPE in self.headers.keys():
+            return self.headers[RABBITMQ_HEADER_KEY_ENCODER_TYPE]
+        return RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT
 
     @property
     def subject(self):
