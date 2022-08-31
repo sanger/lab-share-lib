@@ -22,7 +22,7 @@ in the headers.
 schemas provided by the Redpanda Schema registry. To do that, it reads from the headers the subject name
 and version number of the schema the message was encoded into. With these two fields it will request
 the Redpanda service for the schema published using that subject and version number. The schema downloaded
-is then processed by the [fastavro|https://github.com/fastavro/fastavro] library to validate the correction of the message contents.
+is then processed by the [fastavro](https://github.com/fastavro/fastavro) library to validate the correction of the message contents.
 
 * Message processing: if the validation is correct, a new instance of the Processor class defined in 
 the PROCESSORS field of the config is created and the library will call the method ```process()``` with the
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 # Publishers
 
 A publisher is any application that publishes a new message in an exchange. The queue system will forward the
-message to the required queue/s depending on the configuration created for it (check [RabbitMQ documentation|https://www.rabbitmq.com/tutorials/amqp-concepts.html]).
+message to the required queue/s depending on the configuration created for it (check [RabbitMQ documentation](https://www.rabbitmq.com/tutorials/amqp-concepts.html)).
 
 ## How does a publisher serializes a new message
 
