@@ -27,7 +27,7 @@ for schema in `find . -name "*.avsc"`; do
   curl -X POST -d @$schema.tmp -H "$CONTENT_TYPE" -H "$API_KEY_HEADER" "$REDPANDA_URL/subjects/$schema_name/versions"
 
   # Remove temp file
-  #rm $schema.tmp
+  rm $schema.tmp
   echo 
 done
 
