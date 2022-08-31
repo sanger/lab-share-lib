@@ -58,7 +58,7 @@ class Example1MessageProcessor:
         return
 
     def process(self, message):
-        print(message)
+        print(message.message)
         return True
 ```
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 A publisher is any application that publishes a new message in an exchange. The queue system will forward the
 message to the required queue/s depending on the configuration created for it (check Rabbitmq documentation).
 
-## How does a publisher serializes a nes message
+## How does a publisher serializes a new message
 
 A LabShare publisher requires every message to be serialized in order to be sent. The elements that intervene
 in this message serialization are:
@@ -101,6 +101,8 @@ in this message serialization are:
 * Message format: in LabShare we can use 2 different types of formats: 'json' or 'binary' which describe how
 the data is published in the queue. When publishing a new message the format is provided in the 'encoder_type' Rabbitmq header.
 * Message compression: if the selected format is 'binary', in LabShare we can choose among 3 different types of compression: 'null', 'deflate' or 'snappy'. This compression allows to reduce the size of messages being sent. The compression can be inferred from the contents so no header is provided by the publiserh to send.
+
+** Note ** As stated before, the default publisher in LabShare library uses 3 headers: subject, version and encoder_type. There is also another very important setting that is not a header but is also enabled by default: PERSISTENT_DELIVERY_MODE that enables the exchange to persist the messages received so they remain in the queue even after a Rabbitmq service is restarted. 
 
 ## Setting up a publisher
 
