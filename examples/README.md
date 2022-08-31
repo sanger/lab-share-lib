@@ -15,7 +15,7 @@ again.
 A LabShare consumer adds some extra process to the default consumer behaviour. The process of a message using a LabShare consumer can be structured in different stages:
 
 * Message decoding: in this stage the consumer will read the headers attached to the message, and will 
-use them to deserialize the contents of the message, by using the format and compresion codec specified 
+use them to deserialize the contents of the message, by using the format and compression codec specified 
 in the headers.
 
 * Schema validation: after the contents of the message has been extracted, it is validated using the 
@@ -90,19 +90,19 @@ if __name__ == "__main__":
 # Publishers
 
 A publisher is any application that publishes a new message in an exchange. The queue system will forward the
-message to the required queue/s depending on the configuration created for it (check Rabbitmq documentation).
+message to the required queue/s depending on the configuration created for it (check RabbitMQ documentation).
 
 ## How does a publisher serializes a new message
 
 A LabShare publisher requires every message to be serialized in order to be sent. The elements that intervene
 in this message serialization are:
 
-* Schema selection: every message requires to be written following a schema defined in the Redpanda Schema registry. The schema is obtained by specifying a subject name and a version number. When we publish a message, the subject name is provided in the 'subject' Rabbitmq header, and the version number in the 'version' Rabbitmq header.
+* Schema selection: every message requires to be written following a schema defined in the Redpanda Schema registry. The schema is obtained by specifying a subject name and a version number. When we publish a message, the subject name is provided in the 'subject' Rabbitmq header, and the version number in the 'version' RabbitMQ header.
 * Message format: in LabShare we can use 2 different types of formats: 'json' or 'binary' which describe how
-the data is published in the queue. When publishing a new message the format is provided in the 'encoder_type' Rabbitmq header.
+the data is published in the queue. When publishing a new message the format is provided in the 'encoder_type' RabbitMQ header.
 * Message compression: if the selected format is 'binary', in LabShare we can choose among 3 different types of compression: 'null', 'deflate' or 'snappy'. This compression allows to reduce the size of messages being sent. The compression can be inferred from the contents so no header is provided by the publiserh to send.
 
-** Note ** As stated before, the default publisher in LabShare library uses 3 headers: subject, version and encoder_type. There is also another very important setting that is not a header but is also enabled by default: PERSISTENT_DELIVERY_MODE that enables the exchange to persist the messages received so they remain in the queue even after a Rabbitmq service is restarted. 
+** Note ** As stated before, the default publisher in LabShare library uses 3 headers: subject, version and encoder_type. There is also another very important setting that is not a header but is also enabled by default: PERSISTENT_DELIVERY_MODE that enables the exchange to persist the messages received so they remain in the queue even after a RabbitMQ service is restarted. 
 
 ## Setting up a publisher
 
@@ -112,7 +112,7 @@ you can run to publish a message in a LabShare set of services.
 # Running the examples
 
 In folder examples/example we have added an example of both publisher and consumer you can use to test.
-In order to run this examples first you will need the dependent services: Rabbitmq and Redpanda schema registry. To start them we have provided a docker stack you can start in local with:
+In order to run this examples first you will need the dependent services: RabbitMQ and Redpanda schema registry. To start them we have provided a docker stack you can start in local with:
 
 ```
 ./examples/dependencies/up.sh
