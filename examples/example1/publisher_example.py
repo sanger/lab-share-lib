@@ -5,9 +5,9 @@ from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
 from lab_share_lib.types import RabbitServerDetails
 
-MESSAGE = 'my message'
-SUBJECT = 'example_1_message'
-RABBITMQ_ROUTING_KEY="testing_routing_key.34"
+MESSAGE = "my message"
+SUBJECT = "example_1_message"
+RABBITMQ_ROUTING_KEY = "testing_routing_key.34"
 
 registry = SchemaRegistry(config.REDPANDA_BASE_URI, config.REDPANDA_API_KEY, verify=False)
 
