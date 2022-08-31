@@ -25,7 +25,7 @@ the Redpanda service for the schema published using that subject and version num
 is then processed by the [fastavro](https://github.com/fastavro/fastavro) library to validate the correction of the message contents.
 
 * Message processing: if the validation is correct, a new instance of the Processor class defined in 
-the PROCESSORS field of the config is created and the library will call the method ```process()``` with the
+the PROCESSORS field of the config is created and the library will call the method `process()` with the
 contents of the message. Any required behaviour for the processing of the message can be added inside this
 method. If the process is correct (returns True), the message is purged, but if the process is incorrect (returns False) the message is rejected.
 
@@ -46,7 +46,7 @@ PROCESSORS={
 }
 ```
 
-This will define a new processor class ```Example1MessageProcessor``` that will process any new messages where the subject name is 'example_1_message'.
+This will define a new processor class `Example1MessageProcessor` that will process any new messages where the subject name is 'example_1_message'.
 
 In [examples/example1/processors.py](examples/example1/processors.py) we have an example of a processor class skeleton you can use to implement new process for messages received with subject 'example_1_message':
 
@@ -60,7 +60,7 @@ class Example1MessageProcessor:
         return True
 ```
 
-The method ```process``` receives a message as argument after being unserialized, so you can perform there the process you require for the message.
+The method `process` receives a message as argument after being unserialized, so you can perform there the process you require for the message.
 
 Third we have to start our consumer in the app we are working on.  A LabShare consumer will run as a separate thread from the main application after starting. As such, there are different options to control how the consumer is performing where, but the most basic could be to check inside an infinite loop. For example:
 
