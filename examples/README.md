@@ -123,21 +123,54 @@ In order to run this examples first you will need to run the dependent services:
 
 After starting, you will be able to access the Rabbitmq admin UI at http://localhost:8080 with credentials user: admin and password: development. The required Rabbitmq elements (user, password, queues, exchanges...) are created automatically on startup. Also the Redpanda schemas are published automatically in this startup.
 
-After setting up the services, you have to create a python environment for the examples:
+After setting up the services, you have to create a python environment for the examples. To facilitate setting up all the dependencies, we provide you with a Docker file that you can use to setup the local running environment with these commands:
+
 ```
 cd examples
-pipenv shell
-pipenv install
+docker build . -t examples-lab-share
+docker run -v $(pwd):/code --env LOCALHOST=host.docker.internal -ti examples-lab-share bash
 ```
 
-And then you can run the consumer:
+Then you can run the publisher, that will publish a new message in the queue:
 
 ```
-python ./example1/consumer_example.py
+pipenv run python ./example1/publisher_example.py
 ```
 
-Or the publisher:
+which will display a message similar to this:
 
 ```
-python ./example1/publisher_example.py
+Sending message: This is the message sent from the publisher at 2022-09-05 10:03:05.610317
+```
+
+After that you can consume this message by running the consumer:
+
+```
+pipenv run python ./example1/consumer_example.py
+```
+
+which will display a message like:
+
+```
+Starting LabShare consumer
+RabbitStack thread is running healthy
+Message read from the queue at 2022-09-05 10:03:09.560891:
+<<
+This is the message sent from the publisher at 2022-09-05 10:03:05.610317
+>>
+```
+
+The consumer will stay listening for any new more messages. 
+
+To stop everything:
+
+1. By pressing Control-C you can kill the consumer:
+```
+^CStopping LabShare consumer...
+```
+
+2. Run the quit command to go out of the bash session from the Docker container:
+
+```
+exit
 ```

@@ -1,14 +1,17 @@
 from processors import Example1MessageProcessor
+import os
+
+LOCALHOST = os.getenv("LOCALHOST", "localhost")
 
 # REDPANDA_BASE_URI defines the URL where the Redpanda service is running
-REDPANDA_BASE_URI = "http://localhost:8081"
+REDPANDA_BASE_URI = f"http://{ LOCALHOST }:8081"
 
 # REDPANDA_API_KEY defines the secret api key that redpanda will receive
 # to authenticate
 REDPANDA_API_KEY = "secret-key"
 
 # RABBITMQ_HOST is the hostname of the machine running Rabbitmq
-RABBITMQ_HOST = "localhost"
+RABBITMQ_HOST = LOCALHOST
 
 # RABBITMQ_PORT is the port number where the Rabbitmq instance is running
 RABBITMQ_PORT = "5672"
