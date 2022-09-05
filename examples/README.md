@@ -33,10 +33,10 @@ method. If the process is correct (returns True), the message is purged, but if 
 
 To set up a consumer first we need to define the configuration settings that the consumer will use to run.
 
-There is an example of all the settings in the file: [examples/example1/config.py](examples/example1/config.py) that you can modify to adapt to your own settings.
+There is an example of all the settings in the file: [example1/config.py](example1/config.py) that you can modify to adapt to your own settings.
 
 Second, we have to define a new processor for the messages to read. To do it, you have add a new entry in the
-[examples/example1/config.py](examples/example1/config.py) file we created before with the name of the class we want to use. For example:
+[example1/config.py](example1/config.py) file we created before with the name of the class we want to use. For example:
 
 ```python
 # Hash that maps each subject name with a processor class that will be instantiated when
@@ -48,7 +48,7 @@ PROCESSORS={
 
 This will define a new processor class `Example1MessageProcessor` that will process any new messages where the subject name is 'example_1_message'.
 
-In [examples/example1/processors.py](examples/example1/processors.py) we have an example of a processor class skeleton you can use to implement new process for messages received with subject 'example_1_message':
+In [example1/processors.py](example1/processors.py) we have an example of a processor class skeleton you can use to implement new process for messages received with subject 'example_1_message':
 
 ```python
 class Example1MessageProcessor:
@@ -104,9 +104,9 @@ the data is published in the queue. When publishing a new message the format is 
 
 ## Setting up a publisher
 
-With this in mind, in the file [examples/example1/publisher_example.py](examples/example1/publisher_example.py) we have provided an example of what
+With this in mind, in the file [example1/publisher_example.py](example1/publisher_example.py) we have provided an example of what
 you can run to publish a message in a LabShare set of services. This example will use the schema defined in
-[examples/dependencies/schemas/example_1_message/schema.avsc](examples/dependencies/schemas/example_1_message/schema.avsc) and the 'latest' version published for that schema. If you use the dependencies script provided [examples/dependencies/up.sh](examples/dependencies/up.sh) the schemas will be published by default, but if you want to modify this schema to use a different message format, you can make the modification in that schema file and publish again the schema with the command:
+[dependencies/schemas/example_1_message/schema.avsc](dependencies/schemas/example_1_message/schema.avsc) and the 'latest' version published for that schema. If you use the dependencies script provided [dependencies/up.sh](dependencies/up.sh) the schemas will be published by default, but if you want to modify this schema to use a different message format, you can make the modification in that schema file and publish again the schema with the command:
 
 ```bash
 ./examples/dependencies/schemas/push_schemas.sh <redpanda_url> <repanda_secret_key_if_any>
@@ -114,7 +114,7 @@ you can run to publish a message in a LabShare set of services. This example wil
 
 # Running the examples
 
-In the folder [examples/example1](examples/example1) we have added an example of both publisher and consumer you can use to test.
+In the folder [example1](example1) we have added an example of both publisher and consumer you can use to test.
 In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. To start them we have provided a docker stack you can start in local with:
 
 ```
