@@ -160,7 +160,7 @@ This is the message sent from the publisher at 2022-09-05 10:03:05.610317
 >>
 ```
 
-The consumer will stay listening for any new more messages. 
+The consumer will keep listening for any more published messages. 
 
 *To stop everything again*:
 
