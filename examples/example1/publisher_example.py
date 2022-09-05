@@ -6,7 +6,7 @@ from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
 from lab_share_lib.types import RabbitServerDetails
 
-TIMESTAMP = datetime.datetime.now()
+TIMESTAMP = datetime.datetime.utcnow()
 MESSAGE = f"This is the message sent from the publisher at {TIMESTAMP}"
 SUBJECT = "example_1_message"
 RABBITMQ_ROUTING_KEY = "testing_routing_key.34"
