@@ -174,3 +174,9 @@ To stop everything:
 ```
 exit
 ```
+
+3. Kill all dependent services Rabbitmq and Redpanda:
+
+```
+./dependencies/down.sh
+```
