@@ -162,7 +162,7 @@ This is the message sent from the publisher at 2022-09-05 10:03:05.610317
 
 The consumer will stay listening for any new more messages. 
 
-To stop everything:
+*To stop everything again*:
 
 1. By pressing Control-C you can kill the consumer:
 ```
