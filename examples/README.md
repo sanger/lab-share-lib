@@ -117,6 +117,8 @@ you can run to publish a message in a LabShare set of services. This example wil
 In the folder [example1](example1) we have added an example of both publisher and consumer you can use to test.
 In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. 
 
+## Preconditions
+
 To run the examples make sure you match the following requirements:
 
 * docker-compose command available in your PATH. You can check by seeing it can be found with the command:
@@ -128,13 +130,17 @@ which docker-compose
 netstat -an -ptcp | grep LISTEN
 ```
 
-To be able to run the examples we have provided a docker stack you can start in local with:
+## Running dependent services
+
+To be able to run the examples we have provided a docker stack with the dependent services you can start in local with:
 
 ```
 ./examples/dependencies/up.sh
 ```
 
 After starting, you will be able to access the Rabbitmq admin UI at http://localhost:8080 with credentials user: admin and password: development. The required Rabbitmq elements (user, password, queues, exchanges...) are created automatically on startup. Also the Redpanda schemas are published automatically in this startup.
+
+## Running the examples
 
 After setting up the services, you have to create a python environment for the examples. To facilitate setting up all the dependencies, we provide you with a Docker file that you can use to setup the local running environment with these commands:
 
