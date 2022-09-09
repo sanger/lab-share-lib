@@ -115,7 +115,20 @@ you can run to publish a message in a LabShare set of services. This example wil
 # Running the examples
 
 In the folder [example1](example1) we have added an example of both publisher and consumer you can use to test.
-In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. To start them we have provided a docker stack you can start in local with:
+In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. 
+
+To run the examples make sure you match the following requirements:
+
+* docker-compose command available in your PATH. You can check by seeing it can be found with the command:
+```
+which docker-compose
+```
+* No applications running in ports 5672, 8080 and 8081. You can check the open ports in your local with the command:
+```
+netstat -an -ptcp | grep LISTEN
+```
+
+To be able to run the examples we have provided a docker stack you can start in local with:
 
 ```
 ./examples/dependencies/up.sh
