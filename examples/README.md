@@ -115,7 +115,24 @@ you can run to publish a message in a LabShare set of services. This example wil
 # Running the examples
 
 In the folder [example1](example1) we have added an example of both publisher and consumer you can use to test.
-In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. To start them we have provided a docker stack you can start in local with:
+In order to run this examples first you will need to run the dependent services: RabbitMQ and Redpanda schema registry. 
+
+## Preconditions
+
+To run the examples make sure you match the following requirements:
+
+* docker-compose command available in your PATH. You can check by seeing it can be found with the command:
+```
+which docker-compose
+```
+* No applications running in ports 5672, 8080 and 8081. You can check the open ports in your local with the command:
+```
+netstat -an -ptcp | grep LISTEN
+```
+
+## Running dependent services
+
+To be able to run the examples we have provided a docker stack with the dependent services you can start in local with:
 
 ```
 ./examples/dependencies/up.sh
@@ -123,21 +140,63 @@ In order to run this examples first you will need to run the dependent services:
 
 After starting, you will be able to access the Rabbitmq admin UI at http://localhost:8080 with credentials user: admin and password: development. The required Rabbitmq elements (user, password, queues, exchanges...) are created automatically on startup. Also the Redpanda schemas are published automatically in this startup.
 
-After setting up the services, you have to create a python environment for the examples:
-```
+## Running the examples
+
+After setting up the services, you have to create a python environment for the examples. To facilitate setting up the environment, we provide you with a Docker file that you can use to setup the local running environment with these commands:
+
+```shell
 cd examples
-pipenv shell
-pipenv install
+docker build . -t examples-lab-share
+docker run -v $(pwd):/code --env LOCALHOST=host.docker.internal -ti examples-lab-share bash
 ```
 
-And then you can run the consumer:
+Then you can run the publisher, that will publish a new message in the queue:
 
-```
-python ./example1/consumer_example.py
+```shell
+pipenv run python ./example1/publisher_example.py
 ```
 
-Or the publisher:
+which will display a message similar to this:
 
+```shell
+Sending message: This is the message sent from the publisher at 2022-09-05 10:03:05.610317
 ```
-python ./example1/publisher_example.py
+
+After that you can consume this message by running the consumer:
+
+```shell
+pipenv run python ./example1/consumer_example.py
+```
+
+which will display a message like:
+
+```text
+Starting LabShare consumer
+RabbitStack thread is running healthy
+Message read from the queue at 2022-09-05 10:03:09.560891:
+<<
+This is the message sent from the publisher at 2022-09-05 10:03:05.610317
+>>
+```
+
+The consumer will keep listening for any more published messages. 
+
+*To stop everything again*:
+
+1. By pressing Control-C you can kill the consumer:
+
+```text
+^CStopping LabShare consumer...
+```
+
+2. Run the quit command to go out of the bash session from the Docker container:
+
+```shell
+exit
+```
+
+3. Kill all dependent services Rabbitmq and Redpanda:
+
+```shell
+./dependencies/down.sh
 ```

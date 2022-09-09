@@ -1,11 +1,13 @@
 import config
+import datetime
 from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
 from lab_share_lib.types import RabbitServerDetails
 
-MESSAGE = "my message"
+TIMESTAMP = datetime.datetime.utcnow()
+MESSAGE = f"This is the message sent from the publisher at {TIMESTAMP}"
 SUBJECT = "example_1_message"
 RABBITMQ_ROUTING_KEY = "testing_routing_key.34"
 
@@ -25,6 +27,7 @@ encoder = AvroEncoderBinary(registry, SUBJECT)
 encoder.set_compression_codec("snappy")
 encoded_message = encoder.encode([MESSAGE], version="latest")
 
+print(f"Sending message: {MESSAGE}")
 publisher.publish_message(
     config.RABBITMQ_EXCHANGE,
     RABBITMQ_ROUTING_KEY,
