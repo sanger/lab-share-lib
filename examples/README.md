@@ -142,7 +142,7 @@ After starting, you will be able to access the Rabbitmq admin UI at http://local
 
 ## Running the examples
 
-After setting up the services, you have to create a python environment for the examples. To facilitate setting up all the dependencies, we provide you with a Docker file that you can use to setup the local running environment with these commands:
+After setting up the services, you have to create a python environment for the examples. To facilitate setting up the environment, we provide you with a Docker file that you can use to setup the local running environment with these commands:
 
 ```shell
 cd examples
