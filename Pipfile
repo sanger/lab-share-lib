@@ -21,7 +21,7 @@ hatchling = "*"
 
 [packages]
 colorlog = "~=6.6"
-fastavro = "~=1.5"
+fastavro = "~=1.6"
 more-itertools = "~=8.13"
 pika = "~=1.3"
 python-dotenv = "~=0.20"
