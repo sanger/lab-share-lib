@@ -2,7 +2,7 @@
 
 Library to build consumers for the lab-share framework
 
-## Getting Started
+## Setting up
 
 The following tools are required for development:
 
@@ -30,6 +30,10 @@ Run this command inside the project you want to add this library:
     pipenv install -e git+https://github.com/sanger/lab-share-lib@master#egg=lab-share-lib
 ```
 
+## Getting started
+
+Have a look at the examples at: [examples/README.md](./examples/README.md)
+
 ## Testing
 
 Run the tests using pytest (flags are for verbose and exit early):
@@ -37,3 +41,4 @@ Run the tests using pytest (flags are for verbose and exit early):
 ```bash
     python -m pytest -vx
 ```
+
