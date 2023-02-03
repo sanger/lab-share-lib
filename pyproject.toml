@@ -17,6 +17,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dependencies = ["pika", "fastavro~=1.5", "requests"]
+
+
 [project.urls]
 "Homepage" = "https://github.com/sanger/lab-share-lib"
 "Bug Tracker" = "https://github.com/sanger/lab-share-lib/issues"
