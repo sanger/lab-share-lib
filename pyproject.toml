@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = ["pika", "fastavro~=1.5", "requests"]
+dependencies = ["pika", "fastavro~=1.7", "requests"]
 
 
 [project.urls]
