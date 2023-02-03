@@ -18,6 +18,8 @@ responses = "*"
 types-requests = "*"
 build = "*"
 hatchling = "*"
+exceptiongroup = "*"
+tomli = "*"
 
 [packages]
 fastavro = ">= 1.7"
