@@ -1,7 +1,7 @@
 import json
 import logging
 from io import StringIO, BytesIO
-from typing import Any, List, NamedTuple
+from typing import Any, List, NamedTuple, Optional
 
 import fastavro
 
@@ -36,7 +36,7 @@ class AvroEncoderAbstract:
 
 
 class AvroEncoderJson(AvroEncoderAbstract):
-    def encode(self, records: List, version: str = None) -> EncodedMessage:
+    def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
 
         schema_response = self._schema_response(version)
@@ -64,7 +64,7 @@ class AvroEncoderBinary(AvroEncoderAbstract):
     def set_compression_codec(self, compression_codec: str = AVRO_BINARY_COMPRESSION_CODEC_DEFAULT) -> None:
         self._compression_codec = compression_codec
 
-    def encode(self, records: List, version: str = None) -> EncodedMessage:
+    def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
 
         schema_response = self._schema_response(version)
