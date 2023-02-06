@@ -183,7 +183,6 @@ def test_publish_rabbit_message_with_encoder_type_set(subject):
         },
     )
     with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
-
         subject.publish_rabbit_message(m, "exchange", "routing_key")
 
         publish.assert_called_once_with(
@@ -205,7 +204,6 @@ def test_publish_rabbit_message_without_encoder_type_set(subject):
         },
     )
     with patch("lab_share_lib.rabbit.basic_publisher.BasicPublisher.publish_message") as publish:
-
         subject.publish_rabbit_message(m, "exchange", "routing_key")
 
         publish.assert_called_once_with(
