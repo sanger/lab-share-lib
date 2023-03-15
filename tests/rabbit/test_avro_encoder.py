@@ -6,7 +6,22 @@ from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
-SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "name": "sampleName", "type": "string" }', RESPONSE_KEY_VERSION: 7}
+SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "name": "sampleName", "type": "string"}', RESPONSE_KEY_VERSION: 7}
+SCHEMA_RESPONSE_STRICT = {RESPONSE_KEY_SCHEMA: '''
+{  
+  "namespace": "uk.ac.sanger.psd",
+  "type": "record",
+  "name": "CreateLabwareMessage",
+  "doc": "A create message to process new labware.",
+  "fields": [
+    {
+      "name": "done",
+      "doc": "whatever",
+      "type": ["null", "boolean"]
+    }
+  ]  
+}
+''', RESPONSE_KEY_VERSION: 7}
 SCHEMA_OBJECT = {"name": "sampleName", "type": "string"}
 MESSAGE_BODY = "The written message."
 
@@ -29,6 +44,14 @@ def schema_registry():
 
 
 @pytest.fixture
+def schema_registry_strict():
+    schema_registry = MagicMock()
+    schema_registry.get_schema.return_value = SCHEMA_RESPONSE_STRICT
+
+    yield schema_registry
+
+
+@pytest.fixture
 def fastavro():
     with patch("lab_share_lib.rabbit.avro_encoder.fastavro") as fastavro:
         yield fastavro
@@ -37,6 +60,11 @@ def fastavro():
 @pytest.fixture
 def subject(schema_registry):
     return AvroEncoder(schema_registry, SUBJECT)
+
+
+@pytest.fixture
+def subject_strict(schema_registry_strict):
+    return AvroEncoderBinary(schema_registry_strict, SUBJECT)
 
 
 @pytest.fixture
@@ -89,6 +117,16 @@ def test_encode_encodes_the_message(subject, fastavro, schema_version):
     result = subject.encode(records, schema_version)
 
     assert result.body == MESSAGE_BODY.encode()
+    assert result.version == "7"
+
+
+# @pytest.mark.parametrize("schema_version", [None, "5"])
+def test_encode_encodes_the_message_check_strict(subject_strict):
+    records = [{"done": None}]
+
+    result = subject_strict.encode(records, 7)
+
+    # assert result.body == MESSAGE_BODY.encode()
     assert result.version == "7"
 
 
