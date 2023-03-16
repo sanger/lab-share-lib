@@ -133,8 +133,10 @@ def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
 
     result = subject_strict.encode(records, 7)
 
-    # assert result.body == MESSAGE_BODY.encode()
     assert result.version == "7"
+
+    decoded = subject_strict.decode(result.body, result.version)
+    assert list(decoded) == records
 
 
 @pytest.mark.parametrize("done_value", [1, 0, "true", "false", "null", "yes", "no", 1.0, 0.0])
