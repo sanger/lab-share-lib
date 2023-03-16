@@ -41,7 +41,7 @@ class AvroEncoderJson(AvroEncoderAbstract):
 
         schema_response = self._schema_response(version)
         string_writer = StringIO()
-        fastavro.json_writer(string_writer, self._schema(schema_response), records)
+        fastavro.json_writer(string_writer, self._schema(schema_response), records, strict=True, validator=True)
 
         return EncodedMessage(
             body=string_writer.getvalue().encode(), version=str(self._schema_version(schema_response))
@@ -70,7 +70,14 @@ class AvroEncoderBinary(AvroEncoderAbstract):
         schema_response = self._schema_response(version)
         bytes_writer = BytesIO()
 
-        fastavro.writer(bytes_writer, self._schema(schema_response), records, codec=self._compression_codec)
+        fastavro.writer(
+            bytes_writer,
+            self._schema(schema_response),
+            records,
+            codec=self._compression_codec,
+            strict=True,
+            validator=True,
+        )
 
         return EncodedMessage(body=bytes_writer.getvalue(), version=str(self._schema_version(schema_response)))
 
