@@ -4,7 +4,7 @@ import pytest
 
 import fastavro
 
-from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary
+from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary, AvroEncoderJson
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
@@ -21,7 +21,7 @@ SCHEMA_RESPONSE_STRICT = {
     {
       "name": "done",
       "doc": "Union type of null and boolean",
-      "type": ["null", "boolean"]
+      "type": "boolean"
     }
   ]  
 }
@@ -72,6 +72,10 @@ def subject(schema_registry):
 @pytest.fixture
 def subject_strict(schema_registry_strict):
     return AvroEncoderBinary(schema_registry_strict, SUBJECT)
+
+@pytest.fixture
+def subject_strict_json(schema_registry_strict):
+    return AvroEncoderJson(schema_registry_strict, SUBJECT)
 
 
 @pytest.fixture
@@ -127,7 +131,7 @@ def test_encode_encodes_the_message(subject, fastavro_patch, schema_version):
     assert result.version == "7"
 
 
-@pytest.mark.parametrize("done_value", [None, True, False])
+@pytest.mark.parametrize("done_value", [True, False])
 def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
     records = [{"done": done_value}]
 
@@ -138,6 +142,13 @@ def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
     decoded = subject_strict.decode(result.body, result.version)
     assert list(decoded) == records
 
+@pytest.mark.parametrize("done_value", [1, 0, '"true"', '"false"', '"null"', '"yes"', '"no"', 1.0, 0.0])
+def test_encode_encodes_the_message_check_read_validation(subject_strict_json, done_value):
+
+    message = ('{"done": %s}' % done_value ).encode()
+
+    with pytest.raises(fastavro.validation.ValidationError):
+        subject_strict_json.decode(message, 7)
 
 @pytest.mark.parametrize("done_value", [1, 0, "true", "false", "null", "yes", "no", 1.0, 0.0])
 def test_encode_encodes_the_message_check_strict_incorrect_types(subject_strict, done_value):
