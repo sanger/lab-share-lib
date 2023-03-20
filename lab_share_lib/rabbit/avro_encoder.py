@@ -95,4 +95,5 @@ class AvroEncoderBinary(AvroEncoderAbstract):
         fastavro.validation.validate_many(records, self._schema(schema_response), strict=True, raise_errors=True)
         return records
 
+
 AvroEncoder = AvroEncoderJson
