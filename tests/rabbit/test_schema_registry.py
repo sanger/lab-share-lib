@@ -69,9 +69,9 @@ def test_get_schema_generates_the_correct_request(subject, schema_subject, schem
     subject.get_schema(schema_subject, schema_version)
 
     assert len(responses.calls) == 1
-    assert responses.calls[0].request.url == expected_url  # type: ignore
-    assert "X-API-KEY" in responses.calls[0].request.headers  # type: ignore
-    assert responses.calls[0].request.headers["X-API-KEY"] == API_KEY  # type: ignore
+    assert responses.calls[0].request.url == expected_url
+    assert "X-API-KEY" in responses.calls[0].request.headers
+    assert responses.calls[0].request.headers["X-API-KEY"] == API_KEY
 
 
 @responses.activate
@@ -106,7 +106,7 @@ def test_get_schema_without_a_version_gets_latest(subject):
     subject.get_schema("create-plate-map")
 
     assert len(responses.calls) == 1
-    assert responses.calls[0].request.url == expected_url  # type: ignore
+    assert responses.calls[0].request.url == expected_url
 
 
 @responses.activate
