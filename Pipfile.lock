@@ -510,12 +510,12 @@
         },
         "hatchling": {
             "hashes": [
-                "sha256:21e8c13f8458b219a91cb84e5b61c15bf786695d1c4fabc29e91e78f94bfe892",
-                "sha256:bba440453a224e7d4478457fa2e8d8c3633765bafa02975a6b53b9bf917980bc"
+                "sha256:30ec7ee09f6e17b73257eedfd7f5bb5a9b028a6cf6d144d9faad1d826fa203b8",
+                "sha256:ca260a5adad376563dcd5df799e79ec1d5c0a3be41e2fbe335613c451772b09e"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==1.21.1"
+            "version": "==1.22.5"
         },
         "idna": {
             "hashes": [
@@ -585,11 +585,11 @@
         },
         "packaging": {
             "hashes": [
-                "sha256:048fb0e9405036518eaaf48a55953c750c11e1a1b68e0dd1a9d62ed0c092cfc5",
-                "sha256:8c491190033a9af7e1d931d0b5dacc2ef47509b34dd0de67ed209b5203fc88c7"
+                "sha256:2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5",
+                "sha256:eb82c5e3e56209074766e6885bb04b8c38a0c015d0a30036ebe7ece34c9989e9"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==23.2"
+            "version": "==24.0"
         },
         "pathspec": {
             "hashes": [
@@ -781,10 +781,10 @@
         },
         "trove-classifiers": {
             "hashes": [
-                "sha256:854aba3358f3cf10e5c0916aa533f5a39e27aadd8ade26a54cdc2a93257e39c4",
-                "sha256:bfdfe60bbf64985c524416afb637ecc79c558e0beb4b7f52b0039e01044b0229"
+                "sha256:6de68d06edd6fec5032162b6af22e818a4bb6f4ae2258e74699f8a41064b7cad",
+                "sha256:c400e0bdceb018913339d53b07682d09a42aada687d070e90ee3c08477bec024"
             ],
-            "version": "==2024.1.31"
+            "version": "==2024.3.25"
         },
         "types-python-dateutil": {
             "hashes": [
