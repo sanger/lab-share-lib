@@ -67,7 +67,7 @@ def test_get_schema_generates_the_correct_request(subject, schema_subject, schem
     subject.get_schema(schema_subject, schema_version)
 
     assert len(responses.calls) == 1
-    assert responses.calls[0].request.url == expected_url  # type: ignore
+    assert responses.calls[0].request.url == expected_url
 
 
 @responses.activate
