@@ -19,7 +19,6 @@ CONFIG = {
     # RedPanda details
     ###
     "REDPANDA_BASE_URI": "testredpanda",
-    "REDPANDA_API_KEY": "test",
     "PROCESSORS": {},
 }
 

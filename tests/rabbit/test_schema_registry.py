@@ -6,45 +6,43 @@ from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from unittest.mock import patch
 
 BASE_URI = "http://schema_registry.com"
-API_KEY = "EA7G00DF00D"
 
 
 @pytest.fixture
 def subject():
-    subject = SchemaRegistry(BASE_URI, API_KEY)
+    subject = SchemaRegistry(BASE_URI)
     yield subject
 
 
 def test_constructor_stores_values_correctly(subject):
     assert subject._base_uri == BASE_URI
-    assert subject._api_key == API_KEY
 
 
 def test_by_default_enable_verify_certs():
-    subject = SchemaRegistry(BASE_URI, API_KEY)
+    subject = SchemaRegistry(BASE_URI)
 
     with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
         subject.get_schema("test", "1")
 
-        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, True)
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", True)
 
 
 def test_can_enable_verify_certs():
-    subject = SchemaRegistry(BASE_URI, API_KEY, True)
+    subject = SchemaRegistry(BASE_URI, True)
 
     with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
         subject.get_schema("test", "1")
 
-        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, True)
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", True)
 
 
 def test_can_disable_verify_certs():
-    subject = SchemaRegistry(BASE_URI, API_KEY, False)
+    subject = SchemaRegistry(BASE_URI, False)
 
     with patch("lab_share_lib.rabbit.schema_registry.get_json_from_url") as get_json:
         subject.get_schema("test", "1")
 
-        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", API_KEY, False)
+        get_json.assert_called_once_with(f"{BASE_URI}/subjects/test/versions/1", False)
 
 
 @pytest.mark.parametrize(
@@ -69,9 +67,7 @@ def test_get_schema_generates_the_correct_request(subject, schema_subject, schem
     subject.get_schema(schema_subject, schema_version)
 
     assert len(responses.calls) == 1
-    assert responses.calls[0].request.url == expected_url
-    assert "X-API-KEY" in responses.calls[0].request.headers
-    assert responses.calls[0].request.headers["X-API-KEY"] == API_KEY
+    assert responses.calls[0].request.url == expected_url  # type: ignore
 
 
 @responses.activate
