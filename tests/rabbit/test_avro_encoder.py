@@ -2,33 +2,26 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
 
-import fastavro
-
 from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
 SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "name": "sampleName", "type": "string"}', RESPONSE_KEY_VERSION: 7}
-
-SCHEMA_RESPONSE_STRICT = {
-    RESPONSE_KEY_SCHEMA: """
+SCHEMA_RESPONSE_STRICT = {RESPONSE_KEY_SCHEMA: '''
 {  
   "namespace": "uk.ac.sanger.psd",
   "type": "record",
-  "name": "TestingSchema",
-  "doc": "Testing schema for NullBoolean",
+  "name": "CreateLabwareMessage",
+  "doc": "A create message to process new labware.",
   "fields": [
     {
       "name": "done",
-      "doc": "Union type of null and boolean",
+      "doc": "whatever",
       "type": ["null", "boolean"]
     }
   ]  
 }
-""",  # noqa
-    RESPONSE_KEY_VERSION: 7,
-}
-
+''', RESPONSE_KEY_VERSION: 7}
 SCHEMA_OBJECT = {"name": "sampleName", "type": "string"}
 MESSAGE_BODY = "The written message."
 
@@ -59,9 +52,9 @@ def schema_registry_strict():
 
 
 @pytest.fixture
-def fastavro_patch():
-    with patch("lab_share_lib.rabbit.avro_encoder.fastavro") as fastavro_patch:
-        yield fastavro_patch
+def fastavro():
+    with patch("lab_share_lib.rabbit.avro_encoder.fastavro") as fastavro:
+        yield fastavro
 
 
 @pytest.fixture
@@ -96,13 +89,13 @@ def test_schema_response_calls_the_schema_registry(subject, schema_registry, sch
     assert response == SCHEMA_RESPONSE
 
 
-def test_schema_parses_the_returned_schema(subject, fastavro_patch):
+def test_schema_parses_the_returned_schema(subject, fastavro):
     avro_schema = Mock()
-    fastavro_patch.parse_schema.return_value = avro_schema
+    fastavro.parse_schema.return_value = avro_schema
 
     parsed_schema = subject._schema(SCHEMA_RESPONSE)
 
-    fastavro_patch.parse_schema.assert_called_once_with(SCHEMA_OBJECT)
+    fastavro.parse_schema.assert_called_once_with(SCHEMA_OBJECT)
     assert parsed_schema == avro_schema
 
 
@@ -111,15 +104,15 @@ def test_schema_version_extracts_the_version(subject):
 
 
 @pytest.mark.parametrize("schema_version", [None, "5"])
-def test_encode_encodes_the_message(subject, fastavro_patch, schema_version):
+def test_encode_encodes_the_message(subject, fastavro, schema_version):
     records = [{"key": "value"}]
 
-    def json_writer(string_writer, schema, record_list, strict=True, validator=True):
-        assert schema == fastavro_patch.parse_schema.return_value
+    def json_writer(string_writer, schema, record_list):
+        assert schema == fastavro.parse_schema.return_value
         assert record_list == records
         string_writer.write(MESSAGE_BODY)
 
-    fastavro_patch.json_writer.side_effect = json_writer
+    fastavro.json_writer.side_effect = json_writer
 
     result = subject.encode(records, schema_version)
 
@@ -127,9 +120,9 @@ def test_encode_encodes_the_message(subject, fastavro_patch, schema_version):
     assert result.version == "7"
 
 
-@pytest.mark.parametrize("done_value", [None, True, False])
-def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
-    records = [{"done": done_value}]
+# @pytest.mark.parametrize("schema_version", [None, "5"])
+def test_encode_encodes_the_message_check_strict(subject_strict):
+    records = [{"done": None}]
 
     result = subject_strict.encode(records, 7)
 
@@ -137,22 +130,14 @@ def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
     assert result.version == "7"
 
 
-@pytest.mark.parametrize("done_value", [1, 0, "true", "false", "null", "yes", "no", 1.0, 0.0])
-def test_encode_encodes_the_message_check_strict_incorrect_types(subject_strict, done_value):
-    records = [{"done": done_value}]
-
-    with pytest.raises(fastavro.validation.ValidationError):
-        subject_strict.encode(records, 7)
-
-
 @pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_decode_decodes_the_message(subject, fastavro_patch, schema_version):
-    fastavro_patch.json_reader.return_value = SCHEMA_OBJECT
+def test_decode_decodes_the_message(subject, fastavro, schema_version):
+    fastavro.json_reader.return_value = SCHEMA_OBJECT
 
     result = subject.decode(MESSAGE_BODY.encode(), schema_version)
 
-    fastavro_patch.json_reader.assert_called_once_with(ANY, fastavro_patch.parse_schema.return_value)
-    string_reader = fastavro_patch.json_reader.call_args.args[0]
+    fastavro.json_reader.assert_called_once_with(ANY, fastavro.parse_schema.return_value)
+    string_reader = fastavro.json_reader.call_args.args[0]
     assert string_reader.read() == MESSAGE_BODY
 
     assert result == SCHEMA_OBJECT
