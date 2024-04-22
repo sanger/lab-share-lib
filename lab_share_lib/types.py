@@ -43,4 +43,3 @@ class Config(ModuleType):
 
     # RedPanda
     REDPANDA_BASE_URI: str
-    REDPANDA_API_KEY: str

@@ -6,10 +6,6 @@ LOCALHOST = os.getenv("LOCALHOST", "localhost")
 # REDPANDA_BASE_URI defines the URL where the Redpanda service is running
 REDPANDA_BASE_URI = f"http://{ LOCALHOST }:8081"
 
-# REDPANDA_API_KEY defines the secret api key that redpanda will receive
-# to authenticate
-REDPANDA_API_KEY = "secret-key"
-
 # RABBITMQ_HOST is the hostname of the machine running Rabbitmq
 RABBITMQ_HOST = LOCALHOST
 
