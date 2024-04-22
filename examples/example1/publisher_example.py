@@ -11,7 +11,7 @@ MESSAGE = f"This is the message sent from the publisher at {TIMESTAMP}"
 SUBJECT = "example_1_message"
 RABBITMQ_ROUTING_KEY = "testing_routing_key.34"
 
-registry = SchemaRegistry(config.REDPANDA_BASE_URI, config.REDPANDA_API_KEY, verify=False)
+registry = SchemaRegistry(config.REDPANDA_BASE_URI, verify=False)
 
 rabbitmq_details = RabbitServerDetails(
     uses_ssl=False,

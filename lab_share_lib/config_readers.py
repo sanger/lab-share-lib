@@ -32,8 +32,7 @@ def get_config(settings_module: str = "") -> Tuple[ModuleType, str]:
 
 def get_redpanda_schema_registry(config: ModuleType) -> SchemaRegistry:
     redpanda_url = config.REDPANDA_BASE_URI
-    redpanda_api_key = config.REDPANDA_API_KEY
-    return SchemaRegistry(redpanda_url, redpanda_api_key)
+    return SchemaRegistry(redpanda_url)
 
 
 def get_rabbit_server_details(config: ModuleType, username: str = "", password: str = "") -> RabbitServerDetails:

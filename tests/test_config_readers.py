@@ -35,7 +35,7 @@ def test_get_redpanda_schema_registry(config, schema_registry_class):
     actual = get_redpanda_schema_registry(config)
 
     assert actual == schema_registry_class.return_value
-    schema_registry_class.assert_called_once_with(config.REDPANDA_BASE_URI, config.REDPANDA_API_KEY)
+    schema_registry_class.assert_called_once_with(config.REDPANDA_BASE_URI)
 
 
 @pytest.mark.parametrize(
