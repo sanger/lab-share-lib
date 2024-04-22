@@ -53,10 +53,7 @@ class AvroEncoderJson(AvroEncoderAbstract):
         schema_response = self._schema_response(version)
         string_reader = StringIO(message.decode())
 
-        avro_reader = fastavro.json_reader(string_reader, self._schema(schema_response))
-        records = list(avro_reader)
-        fastavro.validation.validate_many(records, self._schema(schema_response), strict=True, raise_errors=True)
-        return records
+        return fastavro.json_reader(string_reader, self._schema(schema_response))
 
 
 class AvroEncoderBinary(AvroEncoderAbstract):
@@ -90,9 +87,7 @@ class AvroEncoderBinary(AvroEncoderAbstract):
         schema_response = self._schema_response(version)
         bytes_reader = BytesIO(message)
 
-        avro_reader = fastavro.reader(bytes_reader, self._schema(schema_response))
-        records = list(avro_reader)
-        fastavro.validation.validate_many(records, self._schema(schema_response), strict=True, raise_errors=True)
-        return records
+        return fastavro.reader(bytes_reader, self._schema(schema_response))
+
 
 AvroEncoder = AvroEncoderJson
