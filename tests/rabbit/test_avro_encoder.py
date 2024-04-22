@@ -16,14 +16,14 @@ SCHEMA_RESPONSE_STRICT = {
   "namespace": "uk.ac.sanger.psd",
   "type": "record",
   "name": "TestingSchema",
-  "doc": "Testing schema for boolean",
+  "doc": "Testing schema for NullBoolean",
   "fields": [
     {
       "name": "done",
-      "doc": "boolean field",
+      "doc": "Union type of null and boolean",
       "type": "boolean"
     }
-  ]
+  ]  
 }
 """,  # noqa
     RESPONSE_KEY_VERSION: 7,
@@ -72,7 +72,6 @@ def subject(schema_registry):
 @pytest.fixture
 def subject_strict(schema_registry_strict):
     return AvroEncoderBinary(schema_registry_strict, SUBJECT)
-
 
 @pytest.fixture
 def subject_strict_json(schema_registry_strict):
@@ -143,14 +142,13 @@ def test_encode_encodes_the_message_check_strict(subject_strict, done_value):
     decoded = subject_strict.decode(result.body, result.version)
     assert list(decoded) == records
 
-
 @pytest.mark.parametrize("done_value", [1, 0, '"true"', '"false"', '"null"', '"yes"', '"no"', 1.0, 0.0])
 def test_encode_encodes_the_message_check_read_validation(subject_strict_json, done_value):
-    message = ('{"done": %s}' % done_value).encode()
+
+    message = ('{"done": %s}' % done_value ).encode()
 
     with pytest.raises(fastavro.validation.ValidationError):
         subject_strict_json.decode(message, 7)
-
 
 @pytest.mark.parametrize("done_value", [1, 0, "true", "false", "null", "yes", "no", 1.0, 0.0])
 def test_encode_encodes_the_message_check_strict_incorrect_types(subject_strict, done_value):
@@ -161,24 +159,16 @@ def test_encode_encodes_the_message_check_strict_incorrect_types(subject_strict,
 
 
 @pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_decode_decodes_the_message(subject_strict_json, fastavro_patch, schema_version):
-    # json_reader call will return an iterator of records as it should.
-    # In this case, there is a simple string message to return.
-    fastavro_patch.json_reader.return_value = iter([MESSAGE_BODY])
+def test_decode_decodes_the_message(subject, fastavro_patch, schema_version):
+    fastavro_patch.json_reader.return_value = SCHEMA_OBJECT
 
-    # When we decode with our Avro JSON decoder, we receive a list of records.
-    result = subject_strict_json.decode(MESSAGE_BODY.encode(), schema_version)
+    result = subject.decode(MESSAGE_BODY.encode(), schema_version)
 
-    # For doing that, the parsed schema was passed to the json_reader as the second argument.
     fastavro_patch.json_reader.assert_called_once_with(ANY, fastavro_patch.parse_schema.return_value)
-    # The first argument to json_reader was a file-like object.
     string_reader = fastavro_patch.json_reader.call_args.args[0]
-
-    # If we read the file-like object, we should see the complete message.
     assert string_reader.read() == MESSAGE_BODY
 
-    # The decoded result is a list of messages. In this case, there is a simple string message in the list.
-    assert result == [MESSAGE_BODY]
+    assert result == SCHEMA_OBJECT
 
 
 @pytest.mark.parametrize("schema_version", ["5", "42"])
