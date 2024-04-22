@@ -70,8 +70,7 @@ class AvroEncoderBinary(AvroEncoderAbstract):
         schema_response = self._schema_response(version)
         bytes_writer = BytesIO()
 
-        fastavro.writer(bytes_writer, self._schema(schema_response),
-                        records, codec=self._compression_codec, strict=True, validator=True)
+        fastavro.writer(bytes_writer, self._schema(schema_response), records, codec=self._compression_codec)
 
         return EncodedMessage(body=bytes_writer.getvalue(), version=str(self._schema_version(schema_response)))
 
