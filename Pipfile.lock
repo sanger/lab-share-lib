@@ -564,12 +564,12 @@
         },
         "hatchling": {
             "hashes": [
-                "sha256:51f861891e98c4044eb455163a737e5d2328d7aa74890b182db2d80fee22a497",
-                "sha256:c4a9ed2314a1fa1d52bbb5bcf01774ff6dd1994048ec954fca040797884a9628"
+                "sha256:41ddc27cdb25db9ef7b68bef075f829c84cb349aa1bff8240797d012510547b0",
+                "sha256:5576ad05227cf96bb4bfd3a5dce31aa53eff05e95da57b40769bd5a3096b31b1"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==1.24.1"
+            "version": "==1.24.2"
         },
         "idna": {
             "hashes": [
@@ -679,11 +679,11 @@
         },
         "pluggy": {
             "hashes": [
-                "sha256:7db9f7b503d67d1c5b95f59773ebb58a8c1c288129a88665838012cfb07b8981",
-                "sha256:8c85c2876142a764e5b7548e7d9a0e0ddb46f5185161049a79b7e974454223be"
+                "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1",
+                "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==1.4.0"
+            "version": "==1.5.0"
         },
         "pycodestyle": {
             "hashes": [
