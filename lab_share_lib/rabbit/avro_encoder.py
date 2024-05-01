@@ -2,7 +2,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from io import StringIO, BytesIO
-from typing import Any, List, NamedTuple, Optional
+from typing import Any, Iterable, List, NamedTuple, Optional
 
 import fastavro
 
@@ -26,7 +26,7 @@ class AvroEncoderBase(ABC):
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage: ...
 
     @abstractmethod
-    def decode(self, message: bytes, version: str) -> Any: ...
+    def decode(self, message: bytes, version: str) -> Iterable: ...
 
     def _schema_response(self, version):
         if version is None:
@@ -58,7 +58,7 @@ class AvroEncoderJson(AvroEncoderBase):
             body=string_writer.getvalue().encode(), version=str(self._schema_version(schema_response))
         )
 
-    def decode(self, message: bytes, version: str) -> Any:
+    def decode(self, message: bytes, version: str) -> Iterable:
         LOGGER.debug("Decoding AVRO message.")
 
         schema_response = self._schema_response(version)
@@ -101,7 +101,7 @@ class AvroEncoderBinaryFile(AvroEncoderBase):
 
         return EncodedMessage(body=bytes_writer.getvalue(), version=str(self._schema_version(schema_response)))
 
-    def decode(self, message: bytes, version: str) -> Any:
+    def decode(self, message: bytes, version: str) -> Iterable:
         LOGGER.debug("Decoding AVRO message.")
 
         schema_response = self._schema_response(version)
@@ -150,7 +150,7 @@ class AvroEncoderBinaryMessage(AvroEncoderBase):
 
         return EncodedMessage(body=bytes_writer.getvalue(), version=str(self._schema_version(schema_response)))
 
-    def decode(self, message: bytes, version: str) -> Any:
+    def decode(self, message: bytes, version: str) -> Iterable:
         LOGGER.debug("Decoding AVRO message.")
 
         schema_response = self._schema_response(version)
@@ -164,7 +164,7 @@ class AvroEncoderBinaryMessage(AvroEncoderBase):
         bytes_reader.seek(10)
 
         # There's something wrong with mypy linting for the number of arguments on this method!
-        return fastavro.schemaless_reader(bytes_reader, self._schema(schema_response))  # type: ignore[call-arg]
+        return [fastavro.schemaless_reader(bytes_reader, self._schema(schema_response))]  # type: ignore[call-arg]
 
 
 class AvroEncoderBinary(AvroEncoderBinaryFile):

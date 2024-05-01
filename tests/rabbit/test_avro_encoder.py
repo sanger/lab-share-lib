@@ -13,8 +13,8 @@ from lab_share_lib.rabbit.avro_encoder import (
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
-SCHEMA_OBJECT = {"name": "sampleName", "type": "string"}
-SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: json.dumps(SCHEMA_OBJECT), RESPONSE_KEY_VERSION: 7}
+SCHEMA_DICT = {"name": "sampleName", "type": "string"}
+SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: json.dumps(SCHEMA_DICT), RESPONSE_KEY_VERSION: 7}
 MESSAGE_BODY = "The written message."
 
 
@@ -94,7 +94,7 @@ class TestCommonAvroEncoderFunctionality:
 
         parsed_schema = subject._schema(SCHEMA_RESPONSE)
 
-        fastavro.parse_schema.assert_called_once_with(SCHEMA_OBJECT)
+        fastavro.parse_schema.assert_called_once_with(SCHEMA_DICT)
         assert parsed_schema == avro_schema
 
     @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
@@ -122,7 +122,7 @@ class TestAvroEncoderJson:
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_decode_decodes_the_message(self, json_subject, fastavro, schema_version):
-        fastavro.json_reader.return_value = SCHEMA_OBJECT
+        fastavro.json_reader.return_value = SCHEMA_DICT
 
         result = json_subject.decode(MESSAGE_BODY.encode(), schema_version)
 
@@ -130,7 +130,7 @@ class TestAvroEncoderJson:
         string_reader = fastavro.json_reader.call_args.args[0]
         assert string_reader.read() == MESSAGE_BODY
 
-        assert result == SCHEMA_OBJECT
+        assert result == SCHEMA_DICT
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_both_encode_and_decode_actions_work_together(self, json_subject, schema_version):
@@ -203,29 +203,29 @@ class TestAvroEncoderBinaryMessage:
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_decode_decodes_the_message(self, binary_message_subject, schema_version, message):
-        record = MESSAGE_BODY
+        records = [MESSAGE_BODY]
 
         result = binary_message_subject.decode(message, schema_version)
 
-        assert result == record
+        assert result == records
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_both_encode_and_decode_actions_work_together(self, binary_message_subject, schema_version):
-        record = MESSAGE_BODY
+        records = [MESSAGE_BODY]
 
-        message = binary_message_subject.encode([record], schema_version)
+        message = binary_message_subject.encode(records, schema_version)
         result = binary_message_subject.decode(message.body, schema_version)
 
-        assert result == record
+        assert result == records
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_both_encode_single_object_and_decode_actions_work_together(self, binary_message_subject, schema_version):
-        record = MESSAGE_BODY
+        records = [MESSAGE_BODY]
 
-        message = binary_message_subject.encode_single_object(record, schema_version)
+        message = binary_message_subject.encode_single_object(records[0], schema_version)
         result = binary_message_subject.decode(message.body, schema_version)
 
-        assert result == record
+        assert result == records
 
 
 class TestDeprecatedAvroEncoderClasses:
