@@ -67,6 +67,17 @@ class AvroEncoderJson(AvroEncoderBase):
         return fastavro.json_reader(string_reader, self._schema(schema_response))
 
 
+class AvroEncoder(AvroEncoderJson):
+    """Included for backwards compatibility. This class is now an alias for AvroEncoderJson."""
+
+    def __init__(self, schema_registry, subject):
+        LOGGER.warning(
+            "AvroEncoder is deprecated. Please now use AvroEncoderJson for the same functionality or "
+            "one of the other encoder types."
+        )
+        super().__init__(schema_registry, subject)
+
+
 class AvroEncoderBinaryFile(AvroEncoderBase):
     """An encoder for Avro messages that are stored long term in a file. This encoding is not intended for sending
     messages via a message broker where the messages are short lived. The encoding will include the schema in the
@@ -160,11 +171,8 @@ class AvroEncoderBinary(AvroEncoderBinaryFile):
     """Included for backwards compatibility. This class is now an alias for AvroEncoderBinaryFile."""
 
     def __init__(self, schema_registry, subject):
-        LOGGER.warn(
-            "AvroEncoderBinary is now deprecated. Either use AvroEncoderBinaryFile for the same functionality as "
+        LOGGER.warning(
+            "AvroEncoderBinary is deprecated. Either use AvroEncoderBinaryFile for the same functionality as "
             "before, or AvroEncoderBinaryMessage if you are not trying to store Avro encodings in a file format."
         )
         super().__init__(schema_registry, subject)
-
-
-AvroEncoder = AvroEncoderJson
