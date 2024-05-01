@@ -1,5 +1,6 @@
 import json
 import logging
+from abc import ABC, abstractmethod
 from io import StringIO, BytesIO
 from typing import Any, List, NamedTuple, Optional
 
@@ -16,10 +17,16 @@ class EncodedMessage(NamedTuple):
     version: str
 
 
-class AvroEncoderAbstract:
+class AvroEncoderBase(ABC):
     def __init__(self, schema_registry, subject):
         self._schema_registry = schema_registry
         self._subject = subject
+
+    @abstractmethod
+    def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage: ...
+
+    @abstractmethod
+    def decode(self, message: bytes, version: str) -> Any: ...
 
     def _schema_response(self, version):
         if version is None:
@@ -35,7 +42,11 @@ class AvroEncoderAbstract:
         return schema_response[RESPONSE_KEY_VERSION]
 
 
-class AvroEncoderJson(AvroEncoderAbstract):
+class AvroEncoderJson(AvroEncoderBase):
+    """An encoder for Avro messages being encoded as JSON. This can be useful for debugging purposes, but shouldn't be
+    used in production where performance can be improved via binary encodings.
+    """
+
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
 
@@ -56,7 +67,12 @@ class AvroEncoderJson(AvroEncoderAbstract):
         return fastavro.json_reader(string_reader, self._schema(schema_response))
 
 
-class AvroEncoderBinary(AvroEncoderAbstract):
+class AvroEncoderBinaryFile(AvroEncoderBase):
+    """An encoder for Avro messages that are stored long term in a file. This encoding is not intended for sending
+    messages via a message broker where the messages are short lived. The encoding will include the schema in the
+    content of the message which inflates the size of the encoded message vastly.
+    """
+
     def __init__(self, schema_registry, subject):
         super().__init__(schema_registry, subject)
         self._compression_codec = AVRO_BINARY_COMPRESSION_CODEC_DEFAULT
@@ -81,6 +97,17 @@ class AvroEncoderBinary(AvroEncoderAbstract):
         bytes_reader = BytesIO(message)
 
         return fastavro.reader(bytes_reader, self._schema(schema_response))
+
+
+class AvroEncoderBinary(AvroEncoderBinaryFile):
+    """Included for backwards compatibility. This class is now an alias for AvroEncoderBinaryFile."""
+
+    def __init__(self, schema_registry, subject):
+        LOGGER.warn(
+            "AvroEncoderBinary is now deprecated. Either use AvroEncoderBinaryFile for the same functionality as "
+            "before, or AvroEncoderBinaryMessage if you are not trying to store Avro encodings in a file format."
+        )
+        super().__init__(schema_registry, subject)
 
 
 AvroEncoder = AvroEncoderJson
