@@ -1,10 +1,15 @@
 import logging
-from typing import Any, Dict, Optional, Type, cast
+from typing import Any, Dict, List, Optional, Type, cast
 
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.processing.rabbit_message import RabbitMessage
-from lab_share_lib.rabbit.avro_encoder import AvroEncoderBase, AvroEncoderBinary, AvroEncoderJson
+from lab_share_lib.rabbit.avro_encoder import (
+    AvroEncoderBase,
+    AvroEncoderBinaryFile,
+    AvroEncoderBinaryMessage,
+    AvroEncoderJson,
+)
 from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
 from lab_share_lib.constants import (
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
@@ -14,10 +19,10 @@ from lab_share_lib.constants import (
 
 LOGGER = logging.getLogger(__name__)
 
-ENCODERS: Dict[str, Type[AvroEncoderBase]] = {
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY: AvroEncoderBinary,
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON: AvroEncoderJson,
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT: AvroEncoderJson,
+ENCODERS: Dict[str, List[Type[AvroEncoderBase]]] = {
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY: [AvroEncoderBinaryMessage, AvroEncoderBinaryFile],
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON: [AvroEncoderJson],
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT: [AvroEncoderJson],
 }
 
 
@@ -44,16 +49,16 @@ class RabbitMessageProcessor:
             BaseProcessor, processor_instance_builder(self._schema_registry, self._basic_publisher, self._config)
         )
 
-    def build_avro_encoder(self, encoder_type, subject):
+    def build_avro_encoders(self, encoder_type, subject):
         if encoder_type not in ENCODERS.keys():
             raise Exception(f"Encoder type {encoder_type} not recognised")
 
-        return ENCODERS[encoder_type](self._schema_registry, subject)
+        return [encoder(self._schema_registry, subject) for encoder in ENCODERS[encoder_type]]
 
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         try:
-            message.decode(self.build_avro_encoder(message.encoder_type, message.subject))
+            message.decode(self.build_avro_encoders(message.encoder_type, message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.

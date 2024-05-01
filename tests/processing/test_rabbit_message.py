@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
@@ -41,10 +41,29 @@ def test_schema_version_extracts_the_header_correctly(subject):
 
 
 def test_decode_populates_decoded_list(subject, decoder):
-    subject.decode(decoder)
+    subject.decode([decoder])
 
     decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
     assert subject._decoded_list == DECODED_LIST
+
+
+def test_decode_successfully_decodes_if_second_decoder_works(subject, decoder):
+    decoder.decode.side_effect = [ValueError("Invalid 1"), DECODED_LIST]
+
+    subject.decode([decoder, decoder])
+
+    decoder.decode.assert_has_calls([call(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION]) for _ in range(2)])
+    assert subject._decoded_list == DECODED_LIST
+
+
+def test_decode_raises_value_error_if_all_decoders_fail(subject, decoder):
+    decoder.decode.side_effect = [ValueError("Invalid 1"), ValueError("Invalid 2")]
+
+    with pytest.raises(ValueError, match="Failed to decode message with any encoder.") as ex:
+        subject.decode([decoder, decoder])
+
+    assert "Invalid 1" in str(ex.value)
+    assert "Invalid 2" in str(ex.value)
 
 
 @pytest.mark.parametrize(
