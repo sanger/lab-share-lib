@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Type, cast
+from typing import Any, Dict, List, Optional, Type
 
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
@@ -35,7 +35,7 @@ class RabbitMessageProcessor:
         self.__processors: Optional[Dict[str, Any]] = None
 
     @property
-    def _processors(self) -> Dict[str, Any]:
+    def _processors(self) -> Dict[str, BaseProcessor]:
         if self.__processors is None:
             self.__processors = {
                 subject: self._build_processor_for_subject(subject) for subject in self._config.PROCESSORS.keys()
@@ -44,10 +44,8 @@ class RabbitMessageProcessor:
         return self.__processors
 
     def _build_processor_for_subject(self, subject: str) -> BaseProcessor:
-        processor_instance_builder = self._config.PROCESSORS[subject]
-        return cast(
-            BaseProcessor, processor_instance_builder(self._schema_registry, self._basic_publisher, self._config)
-        )
+        processor_class: BaseProcessor = self._config.PROCESSORS[subject]
+        return processor_class.instantiate(self._schema_registry, self._basic_publisher, self._config)
 
     def build_avro_encoders(self, encoder_type, subject):
         if encoder_type not in ENCODERS.keys():
