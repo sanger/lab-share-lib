@@ -14,8 +14,6 @@ class RabbitMessage:
         self.headers = headers
         self.encoded_body = encoded_body
 
-        self._subject = None
-        self._schema_version = None
         self._decoded_list = None
         self._message = None
 
@@ -25,15 +23,11 @@ class RabbitMessage:
 
     @property
     def subject(self):
-        if self._subject is None:
-            self._subject = self.headers[RABBITMQ_HEADER_KEY_SUBJECT]
-        return self._subject
+        return self.headers[RABBITMQ_HEADER_KEY_SUBJECT]
 
     @property
     def schema_version(self):
-        if self._schema_version is None:
-            self._schema_version = self.headers[RABBITMQ_HEADER_KEY_VERSION]
-        return self._schema_version
+        return self.headers[RABBITMQ_HEADER_KEY_VERSION]
 
     def decode(self, possible_encoders):
         exceptions = []
