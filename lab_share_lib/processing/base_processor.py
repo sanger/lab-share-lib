@@ -7,8 +7,8 @@ from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 
 
 class BaseProcessor(ABC):
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def instantiate(
         schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any
     ) -> "BaseProcessor": ...
