@@ -15,7 +15,6 @@ class RabbitMessage:
         self.encoded_body = encoded_body
 
         self._decoded_list = None
-        self._message = None
 
     @property
     def encoder_type(self):
