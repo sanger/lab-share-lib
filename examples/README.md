@@ -48,19 +48,26 @@ PROCESSORS={
 
 This will define a new processor class `Example1MessageProcessor` that will process any new messages where the subject name is 'example_1_message'.
 
-In [example1/processors.py](example1/processors.py) we have an example of a processor class skeleton you can use to implement new process for messages received with subject 'example_1_message':
+In [example1/processors.py](example1/processors.py) there is an example of a very simplified BaseProcessor implementation.
+The file has documentation of how the class might be implemented, along with how to handle error states.
+The snippet below is the barest example of an implementation for completeness of this README file, but the example file is more complete.
 
 ```python
 class Example1MessageProcessor:
-    def __init__(self, schema_registry, basic_publisher, config):
-        return
+    @staticmethod
+    def instantiate(schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any):
+        return Example1MessageProcessor()
 
     def process(self, message):
         print(message.message)
         return True
 ```
 
-The method `process` receives a message as argument after being unserialized, so you can perform there the process you require for the message.
+The `instantiate` method is static and is used by lab-share-lib as a common interface for creating processor class instances.
+Typically you would use this to pass the arguments your processor class needs through to its `__init__` method, but out bare bones example here has ignored them all.
+
+The `process` method receives a message as its only argument after being deserialized.
+This is where the message contents can be validated and subsequent processing should occur.
 
 Third we have to start our consumer in the app we are working on.  A LabShare consumer will run as a separate thread from the main application after starting. As such, there are different options to control how the consumer is performing where, but the most basic could be to check inside an infinite loop. For example:
 
