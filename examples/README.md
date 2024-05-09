@@ -64,9 +64,9 @@ class Example1MessageProcessor(BaseProcessor):
 ```
 
 The `instantiate` method is static and is used by lab-share-lib as a common interface for creating processor class instances.
-Typically you would use this to pass the arguments your processor class needs through to its `__init__` method, but out bare bones example here has ignored them all.
+Typically you would use this to pass the arguments your processor class needs through to its `__init__` method, but our bare bones example here has ignored them all.
 
-The `process` method receives a message as its only argument after being deserialized.
+The `process` method receives a deserialized message as its only argument.
 This is where the message contents can be validated and subsequent processing should occur.
 
 Third we have to start our consumer in the app we are working on.  A LabShare consumer will run as a separate thread from the main application after starting. As such, there are different options to control how the consumer is performing where, but the most basic could be to check inside an infinite loop. For example:
