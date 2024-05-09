@@ -1,23 +1,33 @@
+import json
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
 
-from lab_share_lib.rabbit.avro_encoder import AvroEncoder, AvroEncoderBinary
+from lab_share_lib.rabbit.avro_encoder import (
+    AvroEncoder,
+    AvroEncoderJson,
+    AvroEncoderBinary,
+    AvroEncoderBinaryFile,
+    AvroEncoderBinaryMessage,
+)
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
 
 SUBJECT = "create-plate-map"
-SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: '{ "name": "sampleName", "type": "string" }', RESPONSE_KEY_VERSION: 7}
-SCHEMA_OBJECT = {"name": "sampleName", "type": "string"}
+SCHEMA_DICT = {"name": "sampleName", "type": "string"}
+SCHEMA_RESPONSE = {RESPONSE_KEY_SCHEMA: json.dumps(SCHEMA_DICT), RESPONSE_KEY_VERSION: 7}
 MESSAGE_BODY = "The written message."
 
 
 @pytest.fixture
-def binary_message():
-    f = open("tests/data/test1.avro.dat", "rb")
-    data = f.read()
-    f.close()
+def logger():
+    with patch("lab_share_lib.rabbit.avro_encoder.LOGGER") as logger:
+        yield logger
 
-    yield data
+
+@pytest.fixture
+def binary_message():
+    with open("tests/data/binary_message.avro", "rb") as f:
+        yield f.read()
 
 
 @pytest.fixture
@@ -35,110 +45,204 @@ def fastavro():
 
 
 @pytest.fixture
-def subject(schema_registry):
-    return AvroEncoder(schema_registry, SUBJECT)
+def json_subject(schema_registry):
+    return AvroEncoderJson(schema_registry, SUBJECT)
 
 
 @pytest.fixture
-def subject_binary(schema_registry):
-    return AvroEncoderBinary(schema_registry, SUBJECT)
+def binary_file_subject(schema_registry):
+    return AvroEncoderBinaryFile(schema_registry, SUBJECT)
 
 
-def test_constructor_stores_passed_values(subject, schema_registry):
-    assert subject._schema_registry == schema_registry
-    assert subject._subject == SUBJECT
+@pytest.fixture
+def binary_message_subject(schema_registry):
+    return AvroEncoderBinaryMessage(schema_registry, SUBJECT)
 
 
-@pytest.mark.parametrize("schema_version", [None, "5"])
-def test_schema_response_calls_the_schema_registry(subject, schema_registry, schema_version):
-    response = subject._schema_response(schema_version)
-
-    if schema_version is None:
-        schema_registry.get_schema.assert_called_once_with(SUBJECT)
-    else:
-        schema_registry.get_schema.assert_called_once_with(SUBJECT, schema_version)
-
-    assert response == SCHEMA_RESPONSE
+ENCODER_NAMES = [
+    "json_subject",
+    "binary_file_subject",
+    "binary_message_subject",
+]
 
 
-def test_schema_parses_the_returned_schema(subject, fastavro):
-    avro_schema = Mock()
-    fastavro.parse_schema.return_value = avro_schema
+class TestCommonAvroEncoderFunctionality:
+    @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
+    def test_constructor_stores_passed_values(self, encoder_name, schema_registry, request):
+        subject = request.getfixturevalue(encoder_name)
+        assert subject._schema_registry == schema_registry
+        assert subject._subject == SUBJECT
 
-    parsed_schema = subject._schema(SCHEMA_RESPONSE)
+    @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
+    @pytest.mark.parametrize("schema_version", [None, "5"])
+    def test_schema_response_calls_the_schema_registry(self, encoder_name, schema_registry, schema_version, request):
+        subject = request.getfixturevalue(encoder_name)
+        response = subject._schema_response(schema_version)
 
-    fastavro.parse_schema.assert_called_once_with(SCHEMA_OBJECT)
-    assert parsed_schema == avro_schema
+        if schema_version is None:
+            schema_registry.get_schema.assert_called_once_with(SUBJECT)
+        else:
+            schema_registry.get_schema.assert_called_once_with(SUBJECT, schema_version)
 
+        assert response == SCHEMA_RESPONSE
 
-def test_schema_version_extracts_the_version(subject):
-    assert subject._schema_version(SCHEMA_RESPONSE) == 7
+    @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
+    def test_schema_parses_the_returned_schema(self, encoder_name, fastavro, request):
+        subject = request.getfixturevalue(encoder_name)
+        avro_schema = Mock()
+        fastavro.parse_schema.return_value = avro_schema
 
+        parsed_schema = subject._schema(SCHEMA_RESPONSE)
 
-@pytest.mark.parametrize("schema_version", [None, "5"])
-def test_encode_encodes_the_message(subject, fastavro, schema_version):
-    records = [{"key": "value"}]
+        fastavro.parse_schema.assert_called_once_with(SCHEMA_DICT)
+        assert parsed_schema == avro_schema
 
-    def json_writer(string_writer, schema, record_list):
-        assert schema == fastavro.parse_schema.return_value
-        assert record_list == records
-        string_writer.write(MESSAGE_BODY)
-
-    fastavro.json_writer.side_effect = json_writer
-
-    result = subject.encode(records, schema_version)
-
-    assert result.body == MESSAGE_BODY.encode()
-    assert result.version == "7"
-
-
-@pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_decode_decodes_the_message(subject, fastavro, schema_version):
-    fastavro.json_reader.return_value = SCHEMA_OBJECT
-
-    result = subject.decode(MESSAGE_BODY.encode(), schema_version)
-
-    fastavro.json_reader.assert_called_once_with(ANY, fastavro.parse_schema.return_value)
-    string_reader = fastavro.json_reader.call_args.args[0]
-    assert string_reader.read() == MESSAGE_BODY
-
-    assert result == SCHEMA_OBJECT
+    @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
+    def test_schema_version_extracts_the_version(self, encoder_name, request):
+        subject = request.getfixturevalue(encoder_name)
+        assert subject._schema_version(SCHEMA_RESPONSE) == 7
 
 
-@pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_encode_binary_encodes_the_message(subject_binary, schema_version):
-    records = [MESSAGE_BODY]
+class TestAvroEncoderJson:
+    @pytest.mark.parametrize("schema_version", [None, "5"])
+    def test_encode_encodes_the_message(self, json_subject, fastavro, schema_version):
+        records = [{"key": "value"}]
 
-    message = subject_binary.encode(records, schema_version)
+        def json_writer(string_writer, schema, record_list):
+            assert schema == fastavro.parse_schema.return_value
+            assert record_list == records
+            string_writer.write(MESSAGE_BODY)
 
-    assert message.body != records
-    assert message.version == "7"
+        fastavro.json_writer.side_effect = json_writer
+
+        result = json_subject.encode(records, schema_version)
+
+        assert result.body == MESSAGE_BODY.encode()
+        assert result.version == "7"
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_decode_decodes_the_message(self, json_subject, fastavro, schema_version):
+        fastavro.json_reader.return_value = SCHEMA_DICT
+
+        result = json_subject.decode(MESSAGE_BODY.encode(), schema_version)
+
+        fastavro.json_reader.assert_called_once_with(ANY, fastavro.parse_schema.return_value)
+        string_reader = fastavro.json_reader.call_args.args[0]
+        assert string_reader.read() == MESSAGE_BODY
+
+        assert result == SCHEMA_DICT
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_and_decode_actions_work_together(self, json_subject, schema_version):
+        records = [MESSAGE_BODY]
+
+        message = json_subject.encode(records, schema_version)
+        result = json_subject.decode(message.body, schema_version)
+
+        assert list(result) == records
 
 
-@pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_decode_binary_decodes_the_message(subject_binary, schema_version, binary_message):
-    records = [MESSAGE_BODY]
+class TestAvroEncoderBinaryFile:
+    @pytest.fixture
+    def file(self):
+        with open("tests/data/binary_file.avro", "rb") as f:
+            yield f.read()
 
-    result = subject_binary.decode(binary_message, schema_version)
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_encode_encodes_the_message(self, binary_file_subject, schema_version):
+        records = [MESSAGE_BODY]
 
-    assert list(result) == records
+        message = binary_file_subject.encode(records, schema_version)
+
+        # The binary file includes a random sequence as a delimiter. Therefore we can't easily test the contents.
+        # Another test checks we can decode the message we created.
+        assert message.body != records
+        assert message.version == "7"
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_decode_decodes_the_message(self, binary_file_subject, schema_version, file):
+        records = [MESSAGE_BODY]
+
+        result = binary_file_subject.decode(file, schema_version)
+
+        assert list(result) == records
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_and_decode_actions_work_together(self, binary_file_subject, schema_version):
+        records = [MESSAGE_BODY]
+
+        message = binary_file_subject.encode(records, schema_version)
+        result = binary_file_subject.decode(message.body, schema_version)
+
+        assert list(result) == records
 
 
-@pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_json_both_encode_and_decode_actions_work_together(subject, schema_version):
-    records = [MESSAGE_BODY]
+class TestAvroEncoderBinaryMessage:
+    @pytest.fixture
+    def message(self):
+        with open("tests/data/binary_message.avro", "rb") as f:
+            yield f.read()
 
-    message = subject.encode(records, schema_version)
-    result = subject.decode(message.body, schema_version)
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_encode_encodes_the_message(self, binary_message_subject, schema_version, message):
+        record = MESSAGE_BODY
 
-    assert list(result) == records
+        result = binary_message_subject.encode([record], schema_version)
+
+        assert result.body == message
+        assert result.version == "7"
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_encode_single_object_encodes_the_message(self, binary_message_subject, schema_version, message):
+        record = MESSAGE_BODY
+
+        result = binary_message_subject.encode_single_object(record, schema_version)
+
+        assert result.body == message
+        assert result.version == "7"
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_decode_decodes_the_message(self, binary_message_subject, schema_version, message):
+        records = [MESSAGE_BODY]
+
+        result = binary_message_subject.decode(message, schema_version)
+
+        assert result == records
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_and_decode_actions_work_together(self, binary_message_subject, schema_version):
+        records = [MESSAGE_BODY]
+
+        message = binary_message_subject.encode(records, schema_version)
+        result = binary_message_subject.decode(message.body, schema_version)
+
+        assert result == records
+
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_single_object_and_decode_actions_work_together(self, binary_message_subject, schema_version):
+        records = [MESSAGE_BODY]
+
+        message = binary_message_subject.encode_single_object(records[0], schema_version)
+        result = binary_message_subject.decode(message.body, schema_version)
+
+        assert result == records
 
 
-@pytest.mark.parametrize("schema_version", ["5", "42"])
-def test_binary_both_encode_and_decode_actions_work_together(subject_binary, schema_version):
-    records = [MESSAGE_BODY]
+class TestDeprecatedAvroEncoderClasses:
+    def test_avro_encoder_is_an_instance_of_avro_encoder_json(self, schema_registry):
+        subject = AvroEncoder(schema_registry, SUBJECT)
+        assert isinstance(subject, AvroEncoderJson)
 
-    message = subject_binary.encode(records, schema_version)
-    result = subject_binary.decode(message.body, schema_version)
+    def test_avro_encoder_deprecation(self, schema_registry, logger):
+        AvroEncoder(schema_registry, SUBJECT)
+        assert logger.warning.called
+        assert logger.warning.call_args.args[0].startswith("AvroEncoder is deprecated")
 
-    assert list(result) == records
+    def test_avro_encoder_binary_is_an_instance_of_avro_encoder_binary_file(self, schema_registry):
+        subject = AvroEncoderBinary(schema_registry, SUBJECT)
+        assert isinstance(subject, AvroEncoderBinaryFile)
+
+    def test_avro_encoder_binary_deprecation(self, schema_registry, logger):
+        AvroEncoderBinary(schema_registry, SUBJECT)
+        assert logger.warning.called
+        assert logger.warning.call_args.args[0].startswith("AvroEncoderBinary is deprecated")

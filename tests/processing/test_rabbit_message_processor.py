@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -56,12 +56,12 @@ def rabbit_message_binary(rabbit_message):
 
 
 @pytest.fixture
-def build_avro_encoder():
+def build_avro_encoders():
     with patch(
-        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor.build_avro_encoder",
-        return_value=MagicMock(),
-    ) as build_avro_encoder:
-        yield build_avro_encoder
+        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor.build_avro_encoders",
+        return_value=[Mock(), Mock()],
+    ) as build_avro_encoders:
+        yield build_avro_encoders
 
 
 @pytest.fixture
@@ -99,39 +99,39 @@ def test_constructor_populated_processors_correctly(subject, create_plate_proces
     assert subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] == create_plate_processor.return_value
 
 
-def test_process_message_decodes_the_message_with_default_encoding(subject, rabbit_message, build_avro_encoder):
+def test_process_message_decodes_the_message_with_default_encoding(subject, rabbit_message, build_avro_encoders):
     subject.process_message(HEADERS, MESSAGE_BODY)
 
     rabbit_message.assert_called_once_with(HEADERS, MESSAGE_BODY)
 
-    build_avro_encoder.assert_called_once_with(
+    build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message.return_value.decode.assert_called_once_with(build_avro_encoder.return_value)
+    rabbit_message.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
 
 
-def test_process_message_decodes_the_message_with_json_encoding(subject, rabbit_message_json, build_avro_encoder):
+def test_process_message_decodes_the_message_with_json_encoding(subject, rabbit_message_json, build_avro_encoders):
     modified_headers = HEADERS.copy()
     modified_headers.update({RABBITMQ_HEADER_KEY_ENCODER_TYPE: RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON})
     subject.process_message(modified_headers, MESSAGE_BODY)
 
     rabbit_message_json.assert_called_once_with(modified_headers, MESSAGE_BODY)
-    build_avro_encoder.assert_called_once_with(
+    build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message_json.return_value.decode.assert_called_once_with(build_avro_encoder.return_value)
+    rabbit_message_json.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
 
 
-def test_process_message_decodes_the_message_with_binary_encoding(subject, rabbit_message_binary, build_avro_encoder):
+def test_process_message_decodes_the_message_with_binary_encoding(subject, rabbit_message_binary, build_avro_encoders):
     modified_headers = HEADERS.copy()
     modified_headers.update({RABBITMQ_HEADER_KEY_ENCODER_TYPE: RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY})
     subject.process_message(modified_headers, MESSAGE_BODY)
 
     rabbit_message_binary.assert_called_once_with(modified_headers, MESSAGE_BODY)
-    build_avro_encoder.assert_called_once_with(
+    build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message_binary.return_value.decode.assert_called_once_with(build_avro_encoder.return_value)
+    rabbit_message_binary.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
 
 
 def test_process_message_handles_exception_during_decode(subject, logger, rabbit_message):
