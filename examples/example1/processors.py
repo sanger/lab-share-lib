@@ -15,11 +15,11 @@ class Example1MessageProcessor(BaseProcessor):
         self._config = config
 
     @staticmethod
-    def instantiate(schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any):
+    def instantiate(schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any) -> BaseProcessor:
         """Instantiate the processor."""
         return Example1MessageProcessor(schema_registry, basic_publisher, config)
 
-    def process(self, message: RabbitMessage):
+    def process(self, message: RabbitMessage) -> bool:
         """Process the message from RabbitMQ. Here you should confirm that the message contains the expected contents
         and perform the expected processing for that message.
 

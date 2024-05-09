@@ -53,12 +53,12 @@ The file has documentation of how the class might be implemented, along with how
 The snippet below is the barest example of an implementation for completeness of this README file, but the example file is more complete.
 
 ```python
-class Example1MessageProcessor:
+class Example1MessageProcessor(BaseProcessor):
     @staticmethod
-    def instantiate(schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any):
+    def instantiate(schema_registry: SchemaRegistry, basic_publisher: BasicPublisher, config: Any) -> BaseProcessor:
         return Example1MessageProcessor()
 
-    def process(self, message):
+    def process(self, message: RabbitMessage) -> bool:
         print(message.message)
         return True
 ```
