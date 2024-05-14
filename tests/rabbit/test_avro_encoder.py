@@ -104,6 +104,9 @@ class TestCommonAvroEncoderFunctionality:
 
 
 class TestAvroEncoderJson:
+    def test_encoder_type_returns_json(self, json_subject):
+        assert json_subject.encoder_type == "json"
+
     @pytest.mark.parametrize("schema_version", [None, "5"])
     def test_encode_encodes_the_message(self, json_subject, fastavro, schema_version):
         records = [{"key": "value"}]
@@ -148,6 +151,9 @@ class TestAvroEncoderBinaryFile:
         with open("tests/data/binary_file.avro", "rb") as f:
             yield f.read()
 
+    def test_encoder_type_returns_binary(self, binary_file_subject):
+        assert binary_file_subject.encoder_type == "binary"
+
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_encode_encodes_the_message(self, binary_file_subject, schema_version):
         records = [MESSAGE_BODY]
@@ -182,6 +188,9 @@ class TestAvroEncoderBinaryMessage:
     def message(self):
         with open("tests/data/binary_message.avro", "rb") as f:
             yield f.read()
+
+    def test_encoder_type_returns_binary(self, binary_message_subject):
+        assert binary_message_subject.encoder_type == "binary"
 
     @pytest.mark.parametrize("schema_version", ["5", "42"])
     def test_encode_encodes_the_message(self, binary_message_subject, schema_version, message):
