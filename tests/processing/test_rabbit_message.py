@@ -66,12 +66,14 @@ def test_decode_raises_value_error_if_all_decoders_fail(subject, decoder):
     assert "Invalid 1" in str(ex.value)
     assert "Invalid 2" in str(ex.value)
 
+
 def test_decode_does_not_log_json_decoded_body(subject, decoder, caplog):
     caplog.set_level(logging.INFO)
     decoder.encoder_type = "json"
     subject.decode([decoder])
 
     assert "Decoded binary message body:\n['Decoded body']" not in caplog.text
+
 
 def test_decode_logs_binary_decoded_body(subject, decoder, caplog):
     caplog.set_level(logging.INFO)
