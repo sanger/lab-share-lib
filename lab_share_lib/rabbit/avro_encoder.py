@@ -7,7 +7,7 @@ from typing import Any, Iterable, List, NamedTuple, Optional
 import fastavro
 
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
-from lab_share_lib.constants import AVRO_BINARY_COMPRESSION_CODEC_DEFAULT
+from lab_share_lib.constants import AVRO_BINARY_COMPRESSION_CODEC_DEFAULT, EncoderType
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +21,10 @@ class AvroEncoderBase(ABC):
     def __init__(self, schema_registry, subject):
         self._schema_registry = schema_registry
         self._subject = subject
+
+    @property
+    @abstractmethod
+    def encoder_type(self) -> EncoderType: ...
 
     @abstractmethod
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage: ...
@@ -46,6 +50,10 @@ class AvroEncoderJson(AvroEncoderBase):
     """An encoder for Avro messages being encoded as JSON. This can be useful for debugging purposes, but shouldn't be
     used in production where performance can be improved via binary encodings.
     """
+
+    @property
+    def encoder_type(self) -> EncoderType:
+        return "json"
 
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
@@ -91,6 +99,10 @@ class AvroEncoderBinaryFile(AvroEncoderBase):
     def set_compression_codec(self, compression_codec: str = AVRO_BINARY_COMPRESSION_CODEC_DEFAULT) -> None:
         self._compression_codec = compression_codec
 
+    @property
+    def encoder_type(self) -> EncoderType:
+        return "binary"
+
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         LOGGER.debug("Encoding AVRO message.")
 
@@ -131,6 +143,10 @@ class AvroEncoderBinaryMessage(AvroEncoderBase):
     def _schema_fingerprint(self, schema_response):
         canonical_form = fastavro.schema.to_parsing_canonical_form(self._schema(schema_response))
         return fastavro.schema.fingerprint(canonical_form, "CRC-64-AVRO")
+
+    @property
+    def encoder_type(self) -> EncoderType:
+        return "binary"
 
     def encode(self, records: List, version: Optional[str] = None) -> EncodedMessage:
         if records is None or len(records) != 1:
