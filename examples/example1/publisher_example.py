@@ -2,7 +2,7 @@ import config
 import datetime
 from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
-from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinary
+from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinaryMessage
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
 from lab_share_lib.types import RabbitServerDetails
 
@@ -23,8 +23,9 @@ rabbitmq_details = RabbitServerDetails(
 )
 publisher = BasicPublisher(rabbitmq_details, publish_retry_delay=5, publish_max_retries=36, verify_cert=False)
 
-encoder = AvroEncoderBinary(registry, SUBJECT)
-encoder.set_compression_codec("snappy")
+encoder = AvroEncoderBinaryMessage(registry, SUBJECT)
+# When using a BinaryFileEncoder, you can set the compression codec to "snappy" or "deflate"
+# encoder.set_compression_codec("snappy")
 encoded_message = encoder.encode([MESSAGE], version="latest")
 
 print(f"Sending message: {MESSAGE}")
