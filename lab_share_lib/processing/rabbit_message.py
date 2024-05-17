@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from lab_share_lib.constants import (
     LOGGER_NAME_RABBIT_MESSAGES,
     RABBITMQ_HEADER_KEY_ENCODER_TYPE,
@@ -6,6 +7,7 @@ from lab_share_lib.constants import (
     RABBITMQ_HEADER_KEY_VERSION,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
 )
+from lab_share_lib.rabbit.avro_encoder import AvroEncoderBase
 
 LOGGER = logging.getLogger(__name__)
 MESSAGE_LOGGER = logging.getLogger(LOGGER_NAME_RABBIT_MESSAGES)
@@ -30,7 +32,7 @@ class RabbitMessage:
     def schema_version(self):
         return self.headers[RABBITMQ_HEADER_KEY_VERSION]
 
-    def decode(self, possible_encoders):
+    def decode(self, possible_encoders: List[AvroEncoderBase]) -> AvroEncoderBase:
         exceptions = []
         for encoder in possible_encoders:
             try:
@@ -38,7 +40,7 @@ class RabbitMessage:
                 self._decoded_list = list(encoder.decode(self.encoded_body, self.schema_version))
                 if encoder.encoder_type == "binary":
                     MESSAGE_LOGGER.info(f"Decoded binary message body:\n{self._decoded_list}")
-                return
+                return encoder
             except ValueError as ex:
                 LOGGER.debug(f"Failed to decode message with encoder class '{type(encoder).__name__}': {ex}")
                 exceptions.append(ex)

@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from io import StringIO, BytesIO
 from typing import Any, Iterable, List, NamedTuple, Optional
 
+from fastavro.validation import validate
 import fastavro
 
 from lab_share_lib.rabbit.schema_registry import RESPONSE_KEY_SCHEMA, RESPONSE_KEY_VERSION
@@ -44,6 +45,9 @@ class AvroEncoderBase(ABC):
 
     def _schema_version(self, schema_response):
         return schema_response[RESPONSE_KEY_VERSION]
+
+    def validate(self, data_obj: Any, schema_version: str) -> None:
+        validate(data_obj, self._schema(self._schema_response(schema_version)))
 
 
 class AvroEncoderJson(AvroEncoderBase):

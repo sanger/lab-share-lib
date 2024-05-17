@@ -1,6 +1,8 @@
 import logging
 from typing import Any, Dict, List, Optional, Type
 
+from fastavro.validation import ValidationError
+
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.processing.rabbit_message import RabbitMessage
@@ -47,7 +49,7 @@ class RabbitMessageProcessor:
         processor_class: BaseProcessor = self._config.PROCESSORS[subject]
         return processor_class.instantiate(self._schema_registry, self._basic_publisher, self._config)
 
-    def build_avro_encoders(self, encoder_type, subject):
+    def build_avro_encoders(self, encoder_type: str, subject: str) -> List[AvroEncoderBase]:
         if encoder_type not in ENCODERS.keys():
             raise Exception(f"Encoder type {encoder_type} not recognised")
 
@@ -56,7 +58,7 @@ class RabbitMessageProcessor:
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         try:
-            message.decode(self.build_avro_encoders(message.encoder_type, message.subject))
+            used_encoder = message.decode(self.build_avro_encoders(message.encoder_type, message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
@@ -67,6 +69,12 @@ class RabbitMessageProcessor:
         if not message.contains_single_message:
             LOGGER.error("RabbitMQ message received containing multiple AVRO encoded messages.")
             return False  # Send the message to dead letters.
+
+        try:
+            used_encoder.validate(message.message, message.schema_version)
+        except ValidationError as ex:
+            LOGGER.error(f"Decoded message failed schema validation: {ex}")
+            return False
 
         if message.subject not in self._processors.keys():
             LOGGER.error(
