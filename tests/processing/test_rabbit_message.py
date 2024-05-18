@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -26,9 +26,17 @@ def subject():
 
 
 @pytest.fixture
-def decoder():
+def valid_decoder():
     decoder = MagicMock()
     decoder.decode.return_value = DECODED_LIST
+
+    return decoder
+
+
+@pytest.fixture
+def error_decoder():
+    decoder = MagicMock()
+    decoder.decode.side_effect = ValueError("Invalid")
 
     return decoder
 
@@ -41,44 +49,52 @@ def test_schema_version_extracts_the_header_correctly(subject):
     assert subject.schema_version == HEADERS[RABBITMQ_HEADER_KEY_VERSION]
 
 
-def test_decode_populates_decoded_list(subject, decoder):
-    subject.decode([decoder])
+def test_decode_populates_decoded_list(subject, valid_decoder):
+    subject.decode([valid_decoder])
 
-    decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
     assert subject._decoded_list == DECODED_LIST
 
 
-def test_decode_successfully_decodes_if_second_decoder_works(subject, decoder):
-    decoder.decode.side_effect = [ValueError("Invalid 1"), DECODED_LIST]
+def test_decode_returns_the_successful_first_decoder(subject, valid_decoder, error_decoder):
+    used_decoder = subject.decode([valid_decoder, error_decoder])
 
-    subject.decode([decoder, decoder])
+    assert used_decoder is valid_decoder
 
-    decoder.decode.assert_has_calls([call(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION]) for _ in range(2)])
+
+def test_decode_returns_the_successful_second_decoder(subject, error_decoder, valid_decoder):
+    used_decoder = subject.decode([error_decoder, valid_decoder])
+
+    assert used_decoder is valid_decoder
+
+
+def test_decode_successfully_decodes_if_second_decoder_works(subject, error_decoder, valid_decoder):
+    subject.decode([error_decoder, valid_decoder])
+
+    error_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
     assert subject._decoded_list == DECODED_LIST
 
 
-def test_decode_raises_value_error_if_all_decoders_fail(subject, decoder):
-    decoder.decode.side_effect = [ValueError("Invalid 1"), ValueError("Invalid 2")]
-
+def test_decode_raises_value_error_if_all_decoders_fail(subject, error_decoder):
     with pytest.raises(ValueError, match="Failed to decode message with any encoder.") as ex:
-        subject.decode([decoder, decoder])
+        subject.decode([error_decoder])
 
-    assert "Invalid 1" in str(ex.value)
-    assert "Invalid 2" in str(ex.value)
+    assert "Invalid" in str(ex.value)
 
 
-def test_decode_does_not_log_json_decoded_body(subject, decoder, caplog):
+def test_decode_does_not_log_json_decoded_body(subject, valid_decoder, caplog):
     caplog.set_level(logging.INFO)
-    decoder.encoder_type = "json"
-    subject.decode([decoder])
+    valid_decoder.encoder_type = "json"
+    subject.decode([valid_decoder])
 
     assert "Decoded binary message body:\n['Decoded body']" not in caplog.text
 
 
-def test_decode_logs_binary_decoded_body(subject, decoder, caplog):
+def test_decode_logs_binary_decoded_body(subject, valid_decoder, caplog):
     caplog.set_level(logging.INFO)
-    decoder.encoder_type = "binary"
-    subject.decode([decoder])
+    valid_decoder.encoder_type = "binary"
+    subject.decode([valid_decoder])
 
     assert "Decoded binary message body:\n['Decoded body']" in caplog.text
 
