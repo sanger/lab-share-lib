@@ -3,7 +3,6 @@ from unittest.mock import patch
 from lab_share_lib.config_readers import (
     get_config,
     get_redpanda_schema_registry,
-    get_rabbit_server_details,
     get_basic_publisher,
 )
 
@@ -36,29 +35,6 @@ def test_get_redpanda_schema_registry(config, schema_registry_class):
 
     assert actual == schema_registry_class.return_value
     schema_registry_class.assert_called_once_with(config.REDPANDA_BASE_URI)
-
-
-@pytest.mark.parametrize(
-    "given_username, expected_username", [[None, "admin"], ["", "admin"], ["username", "username"]]
-)
-@pytest.mark.parametrize(
-    "given_password, expected_password", [[None, "development"], ["", "development"], ["password", "password"]]
-)
-def test_get_rabbit_server_details(
-    config, given_username, expected_username, given_password, expected_password, rabbit_server_details_class
-):
-    actual = get_rabbit_server_details(config, username=given_username, password=given_password)
-
-    assert actual == rabbit_server_details_class.return_value
-
-    rabbit_server_details_class.assert_called_once_with(
-        uses_ssl=config.RABBITMQ_SSL,
-        host=config.RABBITMQ_HOST,
-        port=config.RABBITMQ_PORT,
-        username=expected_username,
-        password=expected_password,
-        vhost=config.RABBITMQ_VHOST,
-    )
 
 
 @pytest.mark.parametrize(

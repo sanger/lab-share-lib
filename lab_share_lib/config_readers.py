@@ -1,15 +1,15 @@
-from lab_share_lib.constants import RabbitMQConfigKeys as Rabbit
 from lab_share_lib.rabbit.schema_registry import SchemaRegistry
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 import sys
 import os
-from typing import Tuple
+from typing import Tuple, cast
 from importlib import import_module
-from types import ModuleType
+
+from lab_share_lib.types import Config
 
 
-def get_config(settings_module: str = "") -> Tuple[ModuleType, str]:
+def get_config(settings_module: str = "") -> Tuple[Config, str]:
     """Get the config for the app by importing a module named by an environment variable. This allows easy switching
     between environments and inheriting default config values.
 
@@ -24,32 +24,21 @@ def get_config(settings_module: str = "") -> Tuple[ModuleType, str]:
         if not settings_module:
             settings_module = os.environ["SETTINGS_MODULE"]
 
-        config_module = import_module(settings_module)
+        config_module = cast(Config, import_module(settings_module))
 
         return config_module, settings_module
     except KeyError as e:
         sys.exit(f"{e} required in environment variables for config.")
 
 
-def get_redpanda_schema_registry(config: ModuleType) -> SchemaRegistry:
+def get_redpanda_schema_registry(config: Config) -> SchemaRegistry:
     redpanda_url = config.REDPANDA_BASE_URI
     return SchemaRegistry(redpanda_url)
 
 
-def get_rabbit_server_details(server_config: dict, username: str = "", password: str = "") -> RabbitServerDetails:
-    return RabbitServerDetails(
-        uses_ssl=server_config[Rabbit.SSL],
-        host=server_config[Rabbit.HOST],
-        port=server_config[Rabbit.PORT],
-        username=server_config[Rabbit.USERNAME] if not username else username,
-        password=server_config[Rabbit.PASSWORD] if not password else password,
-        vhost=server_config[Rabbit.VHOST],
-    )
-
-
-def get_basic_publisher(config: ModuleType, username: str = "", password: str = "") -> BasicPublisher:
+def get_basic_publisher(server_details: RabbitServerDetails, config: Config) -> BasicPublisher:
     return BasicPublisher(
-        get_rabbit_server_details(config, username, password),
+        server_details,
         config.RABBITMQ_PUBLISH_RETRY_DELAY,
         config.RABBITMQ_PUBLISH_RETRIES,
     )

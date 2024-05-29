@@ -16,7 +16,7 @@ from lab_share_lib.constants import (
     RABBITMQ_HEADER_KEY_VERSION,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
 )
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 LOGGER = logging.getLogger(__name__)
 MESSAGE_LOGGER = logging.getLogger(LOGGER_NAME_RABBIT_MESSAGES)

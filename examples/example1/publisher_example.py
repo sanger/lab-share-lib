@@ -4,7 +4,7 @@ from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinaryMessage
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 TIMESTAMP = datetime.datetime.utcnow()
 MESSAGE = f"This is the message sent from the publisher at {TIMESTAMP}"
