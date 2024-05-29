@@ -1,4 +1,8 @@
+from dataclasses import dataclass
 from types import ModuleType
+from typing import Dict
+
+from lab_share_lib.processing.base_processor import BaseProcessor
 
 
 class RabbitServerDetails(ModuleType):
@@ -24,22 +28,16 @@ class Config(ModuleType):
     """ModuleType class for the app config."""
 
     # RabbitMQ
-    RABBITMQ_HOST: str
-    RABBITMQ_SSL: bool
-    RABBITMQ_PORT: int
-    RABBITMQ_USERNAME: str
-    RABBITMQ_PASSWORD: str
-    RABBITMQ_VHOST: str
-    RABBITMQ_CRUD_QUEUE: str
-    RABBITMQ_FEEDBACK_EXCHANGE: str
-
-    RABBITMQ_CPTD_USERNAME: str
-    RABBITMQ_CPTD_PASSWORD: str
-    RABBITMQ_CPTD_CRUD_EXCHANGE: str
-    RABBITMQ_CPTD_FEEDBACK_QUEUE: str
-
     RABBITMQ_PUBLISH_RETRY_DELAY: int
     RABBITMQ_PUBLISH_RETRIES: int
 
     # RedPanda
     REDPANDA_BASE_URI: str
+
+
+@dataclass
+class RabbitConfig():
+    consumer_details: RabbitServerDetails
+    consumed_queue: str
+    processors: Dict[str, BaseProcessor]
+    publisher_details: RabbitServerDetails | None = None
