@@ -1,3 +1,4 @@
+from lab_share_lib.constants import RabbitMQConfigKeys as Rabbit
 from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from lab_share_lib.types import RabbitServerDetails
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
@@ -35,14 +36,14 @@ def get_redpanda_schema_registry(config: ModuleType) -> SchemaRegistry:
     return SchemaRegistry(redpanda_url)
 
 
-def get_rabbit_server_details(config: ModuleType, username: str = "", password: str = "") -> RabbitServerDetails:
+def get_rabbit_server_details(server_config: dict, username: str = "", password: str = "") -> RabbitServerDetails:
     return RabbitServerDetails(
-        uses_ssl=config.RABBITMQ_SSL,
-        host=config.RABBITMQ_HOST,
-        port=config.RABBITMQ_PORT,
-        username=config.RABBITMQ_USERNAME if not username else username,
-        password=config.RABBITMQ_PASSWORD if not password else password,
-        vhost=config.RABBITMQ_VHOST,
+        uses_ssl=server_config[Rabbit.SSL],
+        host=server_config[Rabbit.HOST],
+        port=server_config[Rabbit.PORT],
+        username=server_config[Rabbit.USERNAME] if not username else username,
+        password=server_config[Rabbit.PASSWORD] if not password else password,
+        vhost=server_config[Rabbit.VHOST],
     )
 
 
