@@ -21,12 +21,3 @@ AVRO_BINARY_COMPRESSION_CODEC_NULL = "null"
 AVRO_BINARY_COMPRESSION_CODEC_DEFLATE = "deflate"
 AVRO_BINARY_COMPRESSION_CODEC_SNAPPY = "snappy"
 AVRO_BINARY_COMPRESSION_CODEC_DEFAULT = AVRO_BINARY_COMPRESSION_CODEC_NULL
-
-class RabbitMQConfigKeys:
-    HOST: Final[str] = "host"
-    SSL: Final[str] = "ssl"
-    PORT: Final[str] = "port"
-    USERNAME: Final[str] = "username"
-    PASSWORD: Final[str] = "password"
-    VHOST: Final[str] = "vhost"
-    CONSUMED_QUEUE: Final[str] = "consumed_queue"
