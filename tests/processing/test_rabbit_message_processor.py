@@ -55,7 +55,7 @@ def rabbit_message_binary(rabbit_message):
 @pytest.fixture
 def build_avro_encoders():
     with patch(
-        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor.build_avro_encoders",
+        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor._build_avro_encoders",
         return_value=[Mock(), Mock()],
     ) as build_avro_encoders:
         yield build_avro_encoders

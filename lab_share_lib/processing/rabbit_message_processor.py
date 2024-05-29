@@ -49,7 +49,7 @@ class RabbitMessageProcessor:
         processor_class: BaseProcessor = self._config.PROCESSORS[subject]
         return processor_class.instantiate(self._schema_registry, self._basic_publisher, self._config)
 
-    def build_avro_encoders(self, encoder_type: str, subject: str) -> List[AvroEncoderBase]:
+    def _build_avro_encoders(self, encoder_type: str, subject: str) -> List[AvroEncoderBase]:
         if encoder_type not in ENCODERS.keys():
             raise Exception(f"Encoder type {encoder_type} not recognised")
 
@@ -58,7 +58,7 @@ class RabbitMessageProcessor:
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         try:
-            used_encoder = message.decode(self.build_avro_encoders(message.encoder_type, message.subject))
+            used_encoder = message.decode(self._build_avro_encoders(message.encoder_type, message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
