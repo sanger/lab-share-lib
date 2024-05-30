@@ -21,14 +21,19 @@ def background_consumer_a():
     consumer = MagicMock()
     return consumer
 
+
 @pytest.fixture
 def background_consumer_b():
     consumer = MagicMock()
     return consumer
 
+
 @pytest.fixture(autouse=True)
 def background_consumer_class(background_consumer_a, background_consumer_b):
-    with patch("lab_share_lib.rabbit.rabbit_stack.BackgroundConsumer", side_effect=[background_consumer_a, background_consumer_b]) as background_consumer:
+    with patch(
+        "lab_share_lib.rabbit.rabbit_stack.BackgroundConsumer",
+        side_effect=[background_consumer_a, background_consumer_b],
+    ) as background_consumer:
         yield background_consumer
 
 
@@ -48,7 +53,9 @@ class TestRabbitStack:
         get_config.assert_called_once_with("settings_module_name")
         assert stack._config == config
 
-    def test_background_consumers_property_returns_2_consumers(self, subject, background_consumer_a, background_consumer_b):
+    def test_background_consumers_property_returns_2_consumers(
+        self, subject, background_consumer_a, background_consumer_b
+    ):
         assert subject._background_consumers == [background_consumer_a, background_consumer_b]
 
     def test_background_consumers_correctly_configured(
@@ -71,21 +78,27 @@ class TestRabbitStack:
             ]
         )
 
-    def test_is_healthy_returns_true_when_all_consumers_are_healthy(self, subject, background_consumer_a, background_consumer_b):
+    def test_is_healthy_returns_true_when_all_consumers_are_healthy(
+        self, subject, background_consumer_a, background_consumer_b
+    ):
         background_consumer_a.is_healthy = True
         background_consumer_b.is_healthy = True
 
         assert subject.is_healthy is True
 
     @pytest.mark.parametrize("is_healthy", [(True, False), (False, True), (False, False)])
-    def test_is_healthy_returns_false_when_any_consumer_is_not_healthy(self, subject, is_healthy, background_consumer_a, background_consumer_b):
+    def test_is_healthy_returns_false_when_any_consumer_is_not_healthy(
+        self, subject, is_healthy, background_consumer_a, background_consumer_b
+    ):
         background_consumer_a.is_healthy = is_healthy[0]
         background_consumer_b.is_healthy = is_healthy[1]
 
         assert subject.is_healthy is False
 
     @pytest.mark.parametrize("is_healthy", [(True, True), (True, False), (False, True), (False, False)])
-    def test_bring_stack_up_starts_unhealthy_consumers(self, subject, is_healthy, background_consumer_a, background_consumer_b):
+    def test_bring_stack_up_starts_unhealthy_consumers(
+        self, subject, is_healthy, background_consumer_a, background_consumer_b
+    ):
         background_consumer_a.is_healthy = is_healthy[0]
         background_consumer_b.is_healthy = is_healthy[1]
 
