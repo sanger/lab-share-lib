@@ -4,7 +4,6 @@ from lab_share_lib.rabbit.schema_registry import SchemaRegistry
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
 from lab_share_lib.rabbit.avro_encoder import AvroEncoderBinaryMessage
 from lab_share_lib.constants import RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY
-from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 TIMESTAMP = datetime.datetime.utcnow()
 MESSAGE = f"This is the message sent from the publisher at {TIMESTAMP}"
@@ -13,15 +12,9 @@ RABBITMQ_ROUTING_KEY = "testing_routing_key.34"
 
 registry = SchemaRegistry(config.REDPANDA_BASE_URI, verify=False)
 
-rabbitmq_details = RabbitServerDetails(
-    uses_ssl=False,
-    host=config.RABBITMQ_HOST,
-    port=config.RABBITMQ_PORT,
-    username=config.RABBITMQ_USERNAME,
-    password=config.RABBITMQ_PASSWORD,
-    vhost=config.RABBITMQ_VHOST,
+publisher = BasicPublisher(
+    config.RABBIT_SERVER_DETAILS, publish_retry_delay=5, publish_max_retries=36, verify_cert=False
 )
-publisher = BasicPublisher(rabbitmq_details, publish_retry_delay=5, publish_max_retries=36, verify_cert=False)
 
 encoder = AvroEncoderBinaryMessage(registry, SUBJECT)
 # When using a BinaryFileEncoder, you can set the compression codec to "snappy" or "deflate"
@@ -30,7 +23,7 @@ encoded_message = encoder.encode([MESSAGE], version="latest")
 
 print(f"Sending message: {MESSAGE}")
 publisher.publish_message(
-    config.RABBITMQ_EXCHANGE,
+    "test.exchange",
     RABBITMQ_ROUTING_KEY,
     encoded_message.body,
     SUBJECT,
