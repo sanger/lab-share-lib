@@ -1,3 +1,4 @@
+from typing import List
 from lab_share_lib.config_readers import get_config
 from lab_share_lib.processing.rabbit_message_processor import RabbitMessageProcessor
 from lab_share_lib.rabbit.background_consumer import BackgroundConsumer
@@ -7,9 +8,10 @@ from lab_share_lib.types import RabbitConfig
 class RabbitStack:
     def __init__(self, settings_module=""):
         self._config, _ = get_config(settings_module)
+        self.__background_consumers = []
 
     @property
-    def _background_consumers(self):
+    def _background_consumers(self) -> List[BackgroundConsumer]:
         if not self.__background_consumers:
 
             def create_consumer(rabbit_config: RabbitConfig) -> BackgroundConsumer:

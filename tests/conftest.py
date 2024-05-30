@@ -49,7 +49,15 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
                 RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
             },
             publisher_details=rabbit_server_details,
-        )
+        ),
+        RabbitConfig(
+            consumer_details=rabbit_server_details,
+            consumed_queue="test.update.queue",
+            processors={
+                RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
+            },
+            publisher_details=rabbit_server_details,
+        ),
     ]
 
     return config
