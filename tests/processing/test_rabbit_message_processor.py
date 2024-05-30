@@ -79,7 +79,7 @@ def subject(config, create_plate_processor, update_sample_processor):
         with patch(
             "lab_share_lib.processing.rabbit_message_processor.get_basic_publisher", return_value=BASIC_PUBLISHER
         ):
-            subject = RabbitMessageProcessor(config)
+            subject = RabbitMessageProcessor(config.RABBITMQ_SERVERS[0], config)
             subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] = create_plate_processor.return_value
             subject._processors[RABBITMQ_SUBJECT_UPDATE_SAMPLE] = update_sample_processor.return_value
             yield subject
@@ -88,7 +88,7 @@ def subject(config, create_plate_processor, update_sample_processor):
 def test_constructor_stored_passed_values(subject, config):
     assert subject._schema_registry == SCHEMA_REGISTRY
     assert subject._basic_publisher == BASIC_PUBLISHER
-    assert subject._config == config
+    assert subject._app_config == config
 
 
 def test_constructor_populated_processors_correctly(subject, create_plate_processor):

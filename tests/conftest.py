@@ -1,28 +1,40 @@
 import pytest
 
+from lab_share_lib.config.rabbit_config import RabbitConfig
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
+from lab_share_lib.types import Config
 
-CONFIG = {
-    ###
-    # RabbitMQ details
-    ###
-    "RABBITMQ_HOST": "testrabbitmq",
-    "RABBITMQ_SSL": False,
-    "RABBITMQ_PORT": 1234,
-    "RABBITMQ_USERNAME": "admin",
-    "RABBITMQ_PASSWORD": "development",
-    "RABBITMQ_VHOST": "testvhost",
-    "RABBITMQ_CRUD_QUEUE": "test.crud.queue",
-    "RABBITMQ_FEEDBACK_EXCHANGE": "test.exchange",
-    "RABBITMQ_PUBLISH_RETRY_DELAY": 5,
-    "RABBITMQ_PUBLISH_RETRIES": 36,  # 3 minutes of retries
-    ###
-    # RedPanda details
-    ###
-    "REDPANDA_BASE_URI": "testredpanda",
-    "PROCESSORS": {},
-}
+RABBIT_SERVER_DETAILS = RabbitServerDetails(
+    uses_ssl=False,
+    host="testrabbitmq",
+    port=1234,
+    username="admin",
+    password="development",
+    vhost="testvhost",
+)
+
+
+class ConfigForTest(Config):
+    RABBITMQ_SERVERS = [
+        RabbitConfig(
+            consumer_details=RABBIT_SERVER_DETAILS,
+            consumed_queue="test.crud.queue",
+            processors={},
+            publisher_details=RABBIT_SERVER_DETAILS,
+        )
+    ]
+
+    RABBITMQ_PUBLISH_RETRY_DELAY = 5
+    RABBITMQ_PUBLISH_RETRIES = 36
+
+    REDPANDA_BASE_URI = "testredpanda"
+
+
+@pytest.fixture
+def rabbit_server_details():
+    return RABBIT_SERVER_DETAILS
 
 
 @pytest.fixture
 def config():
-    return type("Config", (object,), CONFIG)
+    return ConfigForTest("test_settings_module")
