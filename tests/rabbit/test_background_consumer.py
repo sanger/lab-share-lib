@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from lab_share_lib.rabbit.background_consumer import BackgroundConsumer
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 DEFAULT_SERVER_DETAILS = RabbitServerDetails(
     uses_ssl=False, host="host", port=5672, username="username", password="password", vhost="vhost"

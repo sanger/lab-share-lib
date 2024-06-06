@@ -4,7 +4,7 @@ import pytest
 
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.rabbit.async_consumer import AsyncConsumer
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 DEFAULT_SERVER_DETAILS = RabbitServerDetails(
     uses_ssl=False, host="host", port=5672, username="username", password="password", vhost="vhost"

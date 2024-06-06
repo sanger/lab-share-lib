@@ -18,6 +18,7 @@ from lab_share_lib.constants import (
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
 )
+from lab_share_lib.types import Config, RabbitConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,10 +30,12 @@ ENCODERS: Dict[str, List[Type[AvroEncoderBase]]] = {
 
 
 class RabbitMessageProcessor:
-    def __init__(self, config):
-        self._schema_registry = get_redpanda_schema_registry(config)
-        self._basic_publisher = get_basic_publisher(config)
-        self._config = config
+    def __init__(self, rabbit_config: RabbitConfig, app_config: Config):
+        self._rabbit_config = rabbit_config
+        self._app_config = app_config
+
+        self._schema_registry = get_redpanda_schema_registry(app_config)
+        self._basic_publisher = get_basic_publisher(rabbit_config.publisher_details, app_config)
 
         self.__processors: Optional[Dict[str, Any]] = None
 
@@ -40,16 +43,16 @@ class RabbitMessageProcessor:
     def _processors(self) -> Dict[str, BaseProcessor]:
         if self.__processors is None:
             self.__processors = {
-                subject: self._build_processor_for_subject(subject) for subject in self._config.PROCESSORS.keys()
+                subject: self._build_processor(processor)
+                for subject, processor in self._rabbit_config.processors.items()
             }
 
         return self.__processors
 
-    def _build_processor_for_subject(self, subject: str) -> BaseProcessor:
-        processor_class: BaseProcessor = self._config.PROCESSORS[subject]
-        return processor_class.instantiate(self._schema_registry, self._basic_publisher, self._config)
+    def _build_processor(self, processor: Type[BaseProcessor]) -> BaseProcessor:
+        return processor.instantiate(self._schema_registry, self._basic_publisher, self._app_config)
 
-    def build_avro_encoders(self, encoder_type: str, subject: str) -> List[AvroEncoderBase]:
+    def _build_avro_encoders(self, encoder_type: str, subject: str) -> List[AvroEncoderBase]:
         if encoder_type not in ENCODERS.keys():
             raise Exception(f"Encoder type {encoder_type} not recognised")
 
@@ -58,7 +61,7 @@ class RabbitMessageProcessor:
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         try:
-            used_encoder = message.decode(self.build_avro_encoders(message.encoder_type, message.subject))
+            used_encoder = message.decode(self._build_avro_encoders(message.encoder_type, message.subject))
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
