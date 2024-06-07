@@ -16,3 +16,14 @@ updates:
       - "dependencies"
       - "Technical Debt"
       - "python"
+  - package-ecosystem: pip
+    directory: "/examples"
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "Technical Debt"
+      - "python"
