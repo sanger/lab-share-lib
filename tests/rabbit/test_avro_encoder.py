@@ -102,6 +102,16 @@ class TestCommonAvroEncoderFunctionality:
         subject = request.getfixturevalue(encoder_name)
         assert subject._schema_version(SCHEMA_RESPONSE) == 7
 
+    @pytest.mark.parametrize("encoder_name", ENCODER_NAMES)
+    def test_validate_calls_fastavro_validate(self, encoder_name, fastavro, request):
+        subject = request.getfixturevalue(encoder_name)
+
+        with patch("lab_share_lib.rabbit.avro_encoder.validate") as validate:
+            data_obj = {"key": "value"}
+            subject.validate(data_obj, "5")
+
+        validate.assert_called_once_with(data_obj, fastavro.parse_schema.return_value)
+
 
 class TestAvroEncoderJson:
     def test_encoder_type_returns_json(self, json_subject):

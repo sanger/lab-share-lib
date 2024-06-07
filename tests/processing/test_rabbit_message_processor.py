@@ -2,37 +2,28 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from fastavro.validation import ValidationError
+from logging import ERROR
+
 from lab_share_lib.constants import (
     RABBITMQ_HEADER_KEY_SUBJECT,
     RABBITMQ_HEADER_KEY_VERSION,
 )
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.rabbit_message_processor import RabbitMessageProcessor
-from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.constants import (
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
     RABBITMQ_HEADER_KEY_ENCODER_TYPE,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
 )
-
-SCHEMA_REGISTRY = MagicMock()
-BASIC_PUBLISHER = MagicMock()
-
-RABBITMQ_SUBJECT_CREATE_PLATE = "create-plate"
-RABBITMQ_SUBJECT_UPDATE_SAMPLE = "update-sample"
+from tests.constants import RABBITMQ_SUBJECT_CREATE_PLATE, RABBITMQ_SUBJECT_UPDATE_SAMPLE
 
 HEADERS = {
     RABBITMQ_HEADER_KEY_SUBJECT: RABBITMQ_SUBJECT_CREATE_PLATE,
     RABBITMQ_HEADER_KEY_VERSION: "3",
 }
 MESSAGE_BODY = "Body"
-
-
-@pytest.fixture
-def logger():
-    with patch("lab_share_lib.processing.rabbit_message_processor.LOGGER") as logger:
-        yield logger
 
 
 @pytest.fixture(autouse=True)
@@ -58,45 +49,40 @@ def rabbit_message_binary(rabbit_message):
 @pytest.fixture
 def build_avro_encoders():
     with patch(
-        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor.build_avro_encoders",
+        "lab_share_lib.processing.rabbit_message_processor.RabbitMessageProcessor._build_avro_encoders",
         return_value=[Mock(), Mock()],
     ) as build_avro_encoders:
         yield build_avro_encoders
 
 
-@pytest.fixture
-def create_plate_processor():
-    yield MagicMock(BaseProcessor)
+@pytest.fixture(autouse=True)
+def schema_registry():
+    with patch("lab_share_lib.processing.rabbit_message_processor.get_redpanda_schema_registry") as schema_registry:
+        yield schema_registry.return_value
+
+
+@pytest.fixture(autouse=True)
+def basic_publisher():
+    with patch("lab_share_lib.processing.rabbit_message_processor.get_basic_publisher") as basic_publisher:
+        yield basic_publisher.return_value
 
 
 @pytest.fixture
-def update_sample_processor():
-    yield MagicMock(BaseProcessor)
+def subject(config):
+    return RabbitMessageProcessor(config.RABBITMQ_SERVERS[0], config)
 
 
-@pytest.fixture
-def subject(config, create_plate_processor, update_sample_processor):
-    with patch(
-        "lab_share_lib.processing.rabbit_message_processor.get_redpanda_schema_registry", return_value=SCHEMA_REGISTRY
-    ):
-        with patch(
-            "lab_share_lib.processing.rabbit_message_processor.get_basic_publisher", return_value=BASIC_PUBLISHER
-        ):
-            subject = RabbitMessageProcessor(config)
-            subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] = create_plate_processor.return_value
-            subject._processors[RABBITMQ_SUBJECT_UPDATE_SAMPLE] = update_sample_processor.return_value
-            yield subject
+def test_constructor_stored_passed_values(subject, schema_registry, basic_publisher, config):
+    assert subject._schema_registry == schema_registry
+    assert subject._basic_publisher == basic_publisher
+    assert subject._rabbit_config == config.RABBITMQ_SERVERS[0]
+    assert subject._app_config == config
 
 
-def test_constructor_stored_passed_values(subject, config):
-    assert subject._schema_registry == SCHEMA_REGISTRY
-    assert subject._basic_publisher == BASIC_PUBLISHER
-    assert subject._config == config
-
-
-def test_constructor_populated_processors_correctly(subject, create_plate_processor):
+def test_processors_are_populated_correctly(subject, create_plate_processor, update_sample_processor):
     assert list(subject._processors.keys()) == [RABBITMQ_SUBJECT_CREATE_PLATE, RABBITMQ_SUBJECT_UPDATE_SAMPLE]
     assert subject._processors[RABBITMQ_SUBJECT_CREATE_PLATE] == create_plate_processor.return_value
+    assert subject._processors[RABBITMQ_SUBJECT_UPDATE_SAMPLE] == update_sample_processor.return_value
 
 
 def test_process_message_decodes_the_message_with_default_encoding(subject, rabbit_message, build_avro_encoders):
@@ -134,17 +120,15 @@ def test_process_message_decodes_the_message_with_binary_encoding(subject, rabbi
     rabbit_message_binary.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
 
 
-def test_process_message_handles_exception_during_decode(subject, logger, rabbit_message):
+def test_process_message_handles_exception_during_decode(subject, rabbit_message, caplog):
     rabbit_message.return_value.decode.side_effect = KeyError()
     result = subject.process_message(HEADERS, MESSAGE_BODY)
 
     assert result is False
-    logger.error.assert_called_once()
-    error_log = logger.error.call_args.args[0]
-    assert "unrecoverable" in error_log.lower()
+    assert any("unrecoverable" in log.message.lower() and log.levelno == ERROR for log in caplog.records)
 
 
-def test_process_message_handles_transient_error_from_schema_registry(subject, logger, rabbit_message):
+def test_process_message_handles_transient_error_from_schema_registry(subject, rabbit_message, caplog):
     # We have mocked out the decode method.  The AvroEncoder speaks to the schema registry
     # which could raise this error type so we'll just mock it on the decode method.
     error_message = "Schema registry unreachable"
@@ -153,31 +137,57 @@ def test_process_message_handles_transient_error_from_schema_registry(subject, l
     with pytest.raises(TransientRabbitError):
         subject.process_message(HEADERS, MESSAGE_BODY)
 
-    logger.error.assert_called_once()
-    error_log = logger.error.call_args.args[0]
-    assert "transient" in error_log.lower()
-    assert error_message in error_log
+    assert any("transient" in log.message.lower() and log.levelno == ERROR for log in caplog.records)
 
 
-def test_process_message_rejects_rabbit_message_with_multiple_messages(subject, logger, rabbit_message):
+def test_process_message_rejects_rabbit_message_with_multiple_messages(subject, rabbit_message, caplog):
     rabbit_message.return_value.contains_single_message = False
     result = subject.process_message(HEADERS, MESSAGE_BODY)
 
     assert result is False
-    logger.error.assert_called_once()
-    error_log = logger.error.call_args.args[0]
-    assert "multiple" in error_log.lower()
+    assert any("multiple" in log.message.lower() and log.levelno == ERROR for log in caplog.records)
 
 
-def test_process_message_rejects_rabbit_message_with_unrecognised_subject(subject, logger, rabbit_message):
+def test_process_message_calls_validate_on_used_encoder(subject, rabbit_message):
+    message = rabbit_message.return_value
+    encoder = MagicMock()
+    message.decode.return_value = encoder
+
+    subject.process_message(HEADERS, MESSAGE_BODY)
+
+    encoder.validate.assert_called_with(message.message, message.schema_version)
+
+
+def test_process_message_returns_false_when_validate_raises_validation_error(subject, rabbit_message):
+    message = rabbit_message.return_value
+    encoder = MagicMock()
+    message.decode.return_value = encoder
+    encoder.validate.side_effect = ValidationError("Test")
+
+    result = subject.process_message(HEADERS, MESSAGE_BODY)
+
+    assert result is False
+
+
+def test_process_message_logs_error_when_validate_raises_validation_error(subject, rabbit_message, caplog):
+    message = rabbit_message.return_value
+    encoder = MagicMock()
+    message.decode.return_value = encoder
+    validation_error = ValidationError("Test")
+    encoder.validate.side_effect = validation_error
+
+    subject.process_message(HEADERS, MESSAGE_BODY)
+
+    assert any(str(validation_error) in log.message and log.levelno == ERROR for log in caplog.records)
+
+
+def test_process_message_rejects_rabbit_message_with_unrecognised_subject(subject, rabbit_message, caplog):
     wrong_subject = "random-subject"
     rabbit_message.return_value.subject = wrong_subject
     result = subject.process_message(HEADERS, MESSAGE_BODY)
 
     assert result is False
-    logger.error.assert_called_once()
-    error_log = logger.error.call_args.args[0]
-    assert wrong_subject in error_log
+    assert any(wrong_subject in log.message and log.levelno == ERROR for log in caplog.records)
 
 
 @pytest.mark.parametrize("return_value", [True, False])

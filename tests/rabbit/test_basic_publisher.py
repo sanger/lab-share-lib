@@ -15,7 +15,7 @@ from lab_share_lib.constants import (
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
 )
 from lab_share_lib.rabbit.basic_publisher import BasicPublisher
-from lab_share_lib.types import RabbitServerDetails
+from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 
 DEFAULT_SERVER_DETAILS = RabbitServerDetails(
     uses_ssl=False, host="host", port=5672, username="username", password="password", vhost="vhost"
