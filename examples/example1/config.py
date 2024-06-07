@@ -35,3 +35,10 @@ RABBITMQ_SERVERS = [
 # and the CA is not defined in the default path:
 #
 # REQUESTS_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
+
+# RABBITMQ_PUBLISH_RETRY_DELAY is the number of seconds we will wait in between any publish/consume
+# connection to Rabbitmq
+RABBITMQ_PUBLISH_RETRY_DELAY = 5
+
+# RABBITMQ_PUBLISH_RETRIES is the number of retries we will perform
+RABBITMQ_PUBLISH_RETRIES = 36

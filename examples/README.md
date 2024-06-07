@@ -168,7 +168,7 @@ pipenv run python ./example1/publisher_example.py
 
 which will display a message similar to this:
 
-```shell
+```text
 Sending message: This is the message sent from the publisher at 2022-09-05 10:03:05.610317
 ```
 

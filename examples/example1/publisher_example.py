@@ -23,7 +23,7 @@ encoded_message = encoder.encode([MESSAGE], version="latest")
 
 print(f"Sending message: {MESSAGE}")
 publisher.publish_message(
-    "test.exchange",
+    "test_exchange",
     RABBITMQ_ROUTING_KEY,
     encoded_message.body,
     SUBJECT,
