@@ -92,6 +92,19 @@ class BasicPublisher:
         )
         connection.close()
 
+    def public_message(self, exchange, routing_key, body):
+        MESSAGE_LOGGER.info(f"Published message body:  {body}")
+        properties = BasicProperties(
+            delivery_mode=PERSISTENT_DELIVERY_MODE,
+        )
+        connection = BlockingConnection(self._connection_params)
+        channel = connection.channel()
+        channel.confirm_delivery()  # Force exceptions when Rabbit cannot deliver the message
+        self._do_publish_with_retry(
+            lambda: channel.basic_publish(exchange=exchange, routing_key=routing_key, body=body, properties=properties)
+        )
+        connection.close()
+
     def _do_publish_with_retry(self, publish_method):
         retry_count = 0
 
