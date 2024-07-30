@@ -60,8 +60,16 @@ class RabbitMessageProcessor:
 
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
+        subject = message.subject
         try:
-            used_encoder = message.decode(self._build_avro_encoders(message.encoder_type, message.subject))
+            writer_schema_version = self._rabbit_config.message_subjects[subject]["schema_version"]
+            used_encoder = message.decode(
+                self._build_avro_encoders(
+                    message.encoder_type,
+                    subject,
+                ),
+                writer_schema_version,
+            )
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
@@ -74,16 +82,15 @@ class RabbitMessageProcessor:
             return False  # Send the message to dead letters.
 
         try:
-            used_encoder.validate(message.message, message.schema_version)
+            used_encoder.validate(message.message, message.writer_schema_version)
         except ValidationError as ex:
             LOGGER.error(f"Decoded message failed schema validation: {ex}")
             return False
 
-        if message.subject not in self._processors.keys():
+        if subject not in self._processors.keys():
             LOGGER.error(
-                f"Received message has subject '{message.subject}'"
-                " but there is no implemented processor for this subject."
+                f"Received message has subject '{subject}'" " but there is no implemented processor for this subject."
             )
             return False  # Send the message to dead letters.
 
-        return self._processors[message.subject].process(message)
+        return self._processors[subject].process(message)

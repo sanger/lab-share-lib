@@ -28,6 +28,9 @@ RABBITMQ_SERVERS = [
         processors={
             "example_1_message": Example1MessageProcessor,  # The processor class to use for messages with this subject
         },
+        message_subjects={
+            "example_1_message": {"processor": Example1MessageProcessor, "schema_version": 1},
+        },
     ),
 ]
 

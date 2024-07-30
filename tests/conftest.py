@@ -48,6 +48,10 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
                 RABBITMQ_SUBJECT_CREATE_PLATE: create_plate_processor,
                 RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
             },
+            message_subjects={
+                "create-plate": {"processor": create_plate_processor, "schema_version": "1"},
+                "update-sample": {"processor": create_plate_processor, "schema_version": "1"},
+            },
             publisher_details=rabbit_server_details,
         ),
         RabbitConfig(
@@ -55,6 +59,9 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
             consumed_queue="test.update.queue",
             processors={
                 RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
+            },
+            message_subjects={
+                "update-sample": {"processor": update_sample_processor, "schema_version": "1"},
             },
             publisher_details=rabbit_server_details,
         ),

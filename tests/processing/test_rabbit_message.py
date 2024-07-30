@@ -46,39 +46,39 @@ def test_subject_extracts_the_header_correctly(subject):
 
 
 def test_schema_version_extracts_the_header_correctly(subject):
-    assert subject.schema_version == HEADERS[RABBITMQ_HEADER_KEY_VERSION]
+    assert subject.writer_schema_version == HEADERS[RABBITMQ_HEADER_KEY_VERSION]
 
 
 def test_decode_populates_decoded_list(subject, valid_decoder):
-    subject.decode([valid_decoder])
+    subject.decode([valid_decoder], "1")
 
-    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
     assert subject._decoded_list == DECODED_LIST
 
 
 def test_decode_returns_the_successful_first_decoder(subject, valid_decoder, error_decoder):
-    used_decoder = subject.decode([valid_decoder, error_decoder])
+    used_decoder = subject.decode([valid_decoder, error_decoder], "1")
 
     assert used_decoder is valid_decoder
 
 
 def test_decode_returns_the_successful_second_decoder(subject, error_decoder, valid_decoder):
-    used_decoder = subject.decode([error_decoder, valid_decoder])
+    used_decoder = subject.decode([error_decoder, valid_decoder], "1")
 
     assert used_decoder is valid_decoder
 
 
 def test_decode_successfully_decodes_if_second_decoder_works(subject, error_decoder, valid_decoder):
-    subject.decode([error_decoder, valid_decoder])
+    subject.decode([error_decoder, valid_decoder], "1")
 
-    error_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
-    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION])
+    error_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
     assert subject._decoded_list == DECODED_LIST
 
 
 def test_decode_raises_value_error_if_all_decoders_fail(subject, error_decoder):
     with pytest.raises(ValueError, match="Failed to decode message with any encoder.") as ex:
-        subject.decode([error_decoder])
+        subject.decode([error_decoder], "1")
 
     assert "Invalid" in str(ex.value)
 
@@ -86,7 +86,7 @@ def test_decode_raises_value_error_if_all_decoders_fail(subject, error_decoder):
 def test_decode_does_not_log_json_decoded_body(subject, valid_decoder, caplog):
     caplog.set_level(logging.INFO)
     valid_decoder.encoder_type = "json"
-    subject.decode([valid_decoder])
+    subject.decode([valid_decoder], "1")
 
     assert "Decoded binary message body:\n['Decoded body']" not in caplog.text
 
@@ -94,7 +94,7 @@ def test_decode_does_not_log_json_decoded_body(subject, valid_decoder, caplog):
 def test_decode_logs_binary_decoded_body(subject, valid_decoder, caplog):
     caplog.set_level(logging.INFO)
     valid_decoder.encoder_type = "binary"
-    subject.decode([valid_decoder])
+    subject.decode([valid_decoder], "1")
 
     assert "Decoded binary message body:\n['Decoded body']" in caplog.text
 
