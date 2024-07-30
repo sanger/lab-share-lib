@@ -123,7 +123,7 @@ class AvroEncoderBinaryFile(AvroEncoderBase):
         schema_response = self._schema_response(reader_version)
         bytes_reader = BytesIO(message)
 
-        return fastavro.reader(bytes_reader, self._schema(schema_response))  # type: ignore
+        return fastavro.reader(bytes_reader, self._schema(schema_response))
 
 
 class AvroEncoderBinaryMessage(AvroEncoderBase):
