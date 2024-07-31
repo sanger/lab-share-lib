@@ -17,6 +17,7 @@ from lab_share_lib.constants import (
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
     RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
+    SCHEMA_VERSION,
 )
 from lab_share_lib.types import Config, RabbitConfig
 
@@ -62,13 +63,12 @@ class RabbitMessageProcessor:
         message = RabbitMessage(headers, body)
         subject = message.subject
         try:
-            writer_schema_version = self._rabbit_config.message_subjects[subject]["schema_version"]
+            message.reader_schema_version = self._rabbit_config.message_subjects[subject][SCHEMA_VERSION]
             used_encoder = message.decode(
                 self._build_avro_encoders(
                     message.encoder_type,
                     subject,
-                ),
-                writer_schema_version,
+                )
             )
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
