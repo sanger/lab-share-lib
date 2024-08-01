@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Type, Any
+from typing import Dict, Type
 
 from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 from lab_share_lib.processing.base_processor import BaseProcessor

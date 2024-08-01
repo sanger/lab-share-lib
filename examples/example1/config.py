@@ -31,7 +31,7 @@ RABBITMQ_SERVERS = [
         },
         message_subjects={
             "example_1_message": ProcessorSchemaConfig(processor=Example1MessageProcessor, reader_schema_version="1")
-        }
+        },
     ),
 ]
 
