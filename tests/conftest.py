@@ -49,14 +49,8 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
                 RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
             },
             message_subjects={
-                "create-plate": ProcessorSchemaConfig(
-                    processor=create_plate_processor,
-                    reader_schema_version="1"
-                ),
-                "update-sample": ProcessorSchemaConfig(
-                    processor=update_sample_processor,
-                    reader_schema_version="1"
-                ),
+                "create-plate": ProcessorSchemaConfig(processor=create_plate_processor, reader_schema_version="1"),
+                "update-sample": ProcessorSchemaConfig(processor=update_sample_processor, reader_schema_version="1"),
             },
             publisher_details=rabbit_server_details,
         ),
@@ -67,10 +61,7 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
                 RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
             },
             message_subjects={
-                "update-sample": ProcessorSchemaConfig(
-                    processor=update_sample_processor,
-                    reader_schema_version="1"
-                )
+                "update-sample": ProcessorSchemaConfig(processor=update_sample_processor, reader_schema_version="1")
             },
             publisher_details=rabbit_server_details,
         ),

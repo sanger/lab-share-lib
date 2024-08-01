@@ -1,7 +1,8 @@
-from lab_share_lib.config.rabbit_config import RabbitConfig
+import os
+
+from lab_share_lib.config.rabbit_config import RabbitConfig, ProcessorSchemaConfig
 from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 from processors import Example1MessageProcessor
-import os
 
 LOCALHOST = os.getenv("LOCALHOST", "localhost")
 
@@ -29,8 +30,8 @@ RABBITMQ_SERVERS = [
             "example_1_message": Example1MessageProcessor,  # The processor class to use for messages with this subject
         },
         message_subjects={
-            "example_1_message": {"processor": Example1MessageProcessor, "schema_version": 1},
-        },
+            "example_1_message": ProcessorSchemaConfig(processor=Example1MessageProcessor, reader_schema_version="1")
+        }
     ),
 ]
 

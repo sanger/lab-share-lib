@@ -1,8 +1,13 @@
 import logging
+from fastavro.validation import ValidationError
 from typing import Any, Dict, List, Optional, Type
 
-from fastavro.validation import ValidationError
-
+from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
+from lab_share_lib.constants import (
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
+    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
+)
 from lab_share_lib.exceptions import TransientRabbitError
 from lab_share_lib.processing.base_processor import BaseProcessor
 from lab_share_lib.processing.rabbit_message import RabbitMessage
@@ -11,13 +16,6 @@ from lab_share_lib.rabbit.avro_encoder import (
     AvroEncoderBinaryFile,
     AvroEncoderBinaryMessage,
     AvroEncoderJson,
-)
-from lab_share_lib.config_readers import get_redpanda_schema_registry, get_basic_publisher
-from lab_share_lib.constants import (
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT,
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON,
-    RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY,
-    SCHEMA_VERSION,
 )
 from lab_share_lib.types import Config, RabbitConfig
 
