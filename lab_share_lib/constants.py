@@ -14,6 +14,7 @@ RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT: Final[str] = "default"
 
 SCHEMA_VERSION = "schema_version"
 
+
 ###
 # Logger names
 ###
