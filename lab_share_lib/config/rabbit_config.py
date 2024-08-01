@@ -15,6 +15,5 @@ class ProcessorSchemaConfig:
 class RabbitConfig:
     consumer_details: RabbitServerDetails
     consumed_queue: str
-    processors: Dict[str, Type[BaseProcessor]]
     message_subjects: Dict[str, ProcessorSchemaConfig]
     publisher_details: RabbitServerDetails

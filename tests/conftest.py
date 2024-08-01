@@ -44,24 +44,23 @@ def config(rabbit_server_details, create_plate_processor, update_sample_processo
         RabbitConfig(
             consumer_details=rabbit_server_details,
             consumed_queue="test.crud.queue",
-            processors={
-                RABBITMQ_SUBJECT_CREATE_PLATE: create_plate_processor,
-                RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
-            },
             message_subjects={
-                "create-plate": ProcessorSchemaConfig(processor=create_plate_processor, reader_schema_version="1"),
-                "update-sample": ProcessorSchemaConfig(processor=update_sample_processor, reader_schema_version="1"),
+                RABBITMQ_SUBJECT_CREATE_PLATE: ProcessorSchemaConfig(
+                    processor=create_plate_processor, reader_schema_version="1"
+                ),
+                RABBITMQ_SUBJECT_UPDATE_SAMPLE: ProcessorSchemaConfig(
+                    processor=update_sample_processor, reader_schema_version="1"
+                ),
             },
             publisher_details=rabbit_server_details,
         ),
         RabbitConfig(
             consumer_details=rabbit_server_details,
             consumed_queue="test.update.queue",
-            processors={
-                RABBITMQ_SUBJECT_UPDATE_SAMPLE: update_sample_processor,
-            },
             message_subjects={
-                "update-sample": ProcessorSchemaConfig(processor=update_sample_processor, reader_schema_version="1")
+                RABBITMQ_SUBJECT_UPDATE_SAMPLE: ProcessorSchemaConfig(
+                    processor=update_sample_processor, reader_schema_version="1"
+                )
             },
             publisher_details=rabbit_server_details,
         ),

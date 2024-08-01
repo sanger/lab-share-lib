@@ -41,25 +41,12 @@ class RabbitMessageProcessor:
     @property
     def _processors(self) -> Dict[str, BaseProcessor]:
         if self.__processors is None:
-            self.__processors = self._get_processors()
+            self.__processors = {
+                subject: self._build_processor(processor_schema_config.processor)
+                for subject, processor_schema_config in self._rabbit_config.message_subjects.items()
+            }
 
         return self.__processors
-
-    def _get_processors(self) -> Dict[str, BaseProcessor]:
-        """
-        Extracts processors from message_types.
-        Example message_types node:
-        message_subjects={
-                "update-sample": ProcessorSchemaConfig(
-                    processor=update_sample_processor,
-                    reader_schema_version="1"
-                )
-        }
-        """
-        return {
-            subject: self._build_processor(processor_schema_config.processor)
-            for subject, processor_schema_config in self._rabbit_config.message_subjects.items()
-        }
 
     def _build_processor(self, processor: Type[BaseProcessor]) -> BaseProcessor:
         return processor.instantiate(self._schema_registry, self._basic_publisher, self._app_config)
