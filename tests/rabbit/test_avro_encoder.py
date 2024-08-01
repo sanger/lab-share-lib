@@ -220,29 +220,29 @@ class TestAvroEncoderBinaryMessage:
         assert result.body == message
         assert result.version == "7"
 
-    @pytest.mark.parametrize("writer_schema_version", "reader_schema_version", [("5", "42"), ("1")])
-    def test_decode_decodes_the_message(self, binary_message_subject, writer_schema_version, reader_schema_version, message):
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_decode_decodes_the_message(self, binary_message_subject, schema_version, message):
         records = [MESSAGE_BODY]
 
-        result = binary_message_subject.decode(message, reader_schema_version, writer_schema_version)
+        result = binary_message_subject.decode(message, schema_version, "1")
 
         assert result == records
 
-    @pytest.mark.parametrize("writer_schema_version", "reader_schema_version", [("5", "42"), ("1")])
-    def test_both_encode_and_decode_actions_work_together(self, binary_message_subject, writer_schema_version, reader_schema_version):
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_and_decode_actions_work_together(self, binary_message_subject, schema_version):
         records = [MESSAGE_BODY]
 
-        message = binary_message_subject.encode(records, writer_schema_version)
-        result = binary_message_subject.decode(message.body, reader_schema_version, writer_schema_version)
+        message = binary_message_subject.encode(records, schema_version)
+        result = binary_message_subject.decode(message.body, schema_version, "1")
 
         assert result == records
 
-    @pytest.mark.parametrize("writer_schema_version", "reader_schema_version", [("5", "42"), ("1")])
-    def test_both_encode_single_object_and_decode_actions_work_together(self, binary_message_subject, writer_schema_version, reader_schema_version):
+    @pytest.mark.parametrize("schema_version", ["5", "42"])
+    def test_both_encode_single_object_and_decode_actions_work_together(self, binary_message_subject, schema_version):
         records = [MESSAGE_BODY]
 
-        message = binary_message_subject.encode_single_object(records[0], writer_schema_version)
-        result = binary_message_subject.decode(message.body, reader_schema_version, writer_schema_version)
+        message = binary_message_subject.encode_single_object(records[0], schema_version)
+        result = binary_message_subject.decode(message.body, schema_version, "1")
 
         assert result == records
 
