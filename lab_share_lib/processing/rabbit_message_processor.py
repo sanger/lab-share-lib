@@ -72,6 +72,12 @@ class RabbitMessageProcessor:
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
             raise  # Cause the consumer to restart and try this message again.
+        except KeyError as ex:
+            LOGGER.error(
+                f"Unrecoverable error: the required subject {ex.args[0] if len(ex.args) > 0 else ''} "
+                f"is not found in the defined message_subjects dictionary in configs."
+            )
+            return False
         except Exception as ex:
             LOGGER.error(f"Unrecoverable error while decoding RabbitMQ message: {type(ex)} {str(ex)}")
             return False  # Send the message to dead letters.
