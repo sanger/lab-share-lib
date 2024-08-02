@@ -61,12 +61,13 @@ class RabbitMessageProcessor:
         message = RabbitMessage(headers, body)
         subject = message.subject
         try:
-            message.reader_schema_version = self._rabbit_config.message_subjects[subject].reader_schema_version
+            reader_schema_version = self._rabbit_config.message_subjects[subject].reader_schema_version
             used_encoder = message.decode(
                 self._build_avro_encoders(
                     message.encoder_type,
                     subject,
-                )
+                ),
+                reader_schema_version,
             )
         except TransientRabbitError as ex:
             LOGGER.error(f"Transient error while processing message: {ex.message}")
@@ -80,7 +81,7 @@ class RabbitMessageProcessor:
             return False  # Send the message to dead letters.
 
         try:
-            used_encoder.validate(message.message, message.reader_schema_version)
+            used_encoder.validate(message.message, reader_schema_version)
         except ValidationError as ex:
             LOGGER.error(f"Decoded message failed schema validation: {ex}")
             return False

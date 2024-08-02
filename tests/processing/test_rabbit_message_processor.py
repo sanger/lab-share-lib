@@ -94,7 +94,7 @@ def test_process_message_decodes_the_message_with_default_encoding(subject, rabb
     build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_DEFAULT, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
+    rabbit_message.return_value.decode.assert_called_once_with(build_avro_encoders.return_value, "1")
 
 
 def test_process_message_decodes_the_message_with_json_encoding(subject, rabbit_message_json, build_avro_encoders):
@@ -106,7 +106,7 @@ def test_process_message_decodes_the_message_with_json_encoding(subject, rabbit_
     build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_JSON, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message_json.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
+    rabbit_message_json.return_value.decode.assert_called_once_with(build_avro_encoders.return_value, "1")
 
 
 def test_process_message_decodes_the_message_with_binary_encoding(subject, rabbit_message_binary, build_avro_encoders):
@@ -118,7 +118,7 @@ def test_process_message_decodes_the_message_with_binary_encoding(subject, rabbi
     build_avro_encoders.assert_called_once_with(
         RABBITMQ_HEADER_VALUE_ENCODER_TYPE_BINARY, HEADERS[RABBITMQ_HEADER_KEY_SUBJECT]
     )
-    rabbit_message_binary.return_value.decode.assert_called_once_with(build_avro_encoders.return_value)
+    rabbit_message_binary.return_value.decode.assert_called_once_with(build_avro_encoders.return_value, "1")
 
 
 def test_process_message_handles_exception_during_decode(subject, rabbit_message, caplog):

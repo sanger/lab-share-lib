@@ -16,10 +16,9 @@ MESSAGE_LOGGER = logging.getLogger(LOGGER_NAME_RABBIT_MESSAGES)
 
 
 class RabbitMessage:
-    def __init__(self, headers, encoded_body, reader_schema_version=None):
+    def __init__(self, headers, encoded_body):
         self.headers = headers
         self.encoded_body = encoded_body
-        self._reader_schema_version = reader_schema_version
         self._decoded_list = None
 
     @property
@@ -34,21 +33,13 @@ class RabbitMessage:
     def writer_schema_version(self):
         return self.headers[RABBITMQ_HEADER_KEY_VERSION]
 
-    @property
-    def reader_schema_version(self):
-        return self._reader_schema_version
-
-    @reader_schema_version.setter
-    def reader_schema_version(self, version):
-        self._reader_schema_version = version
-
-    def decode(self, possible_encoders: List[AvroEncoderBase]) -> AvroEncoderBase:
+    def decode(self, possible_encoders: List[AvroEncoderBase], reader_schema_version: str) -> AvroEncoderBase:
         exceptions = []
         for encoder in possible_encoders:
             try:
                 LOGGER.debug(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
                 self._decoded_list = list(
-                    encoder.decode(self.encoded_body, self.writer_schema_version, self.reader_schema_version)
+                    encoder.decode(self.encoded_body, self.writer_schema_version, reader_schema_version)
                 )
                 if encoder.encoder_type == ENCODER_TYPE_BINARY:
                     MESSAGE_LOGGER.info(f"Decoded binary message body:\n{self._decoded_list}")
