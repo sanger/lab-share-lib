@@ -6,7 +6,7 @@ from lab_share_lib.processing.base_processor import BaseProcessor
 
 
 @dataclass
-class ProcessorSchemaConfig:
+class MessageSubjectConfig:
     processor: Type[BaseProcessor]
     reader_schema_version: str
 
@@ -15,5 +15,5 @@ class ProcessorSchemaConfig:
 class RabbitConfig:
     consumer_details: RabbitServerDetails
     consumed_queue: str
-    message_subjects: Dict[str, ProcessorSchemaConfig]
+    message_subjects: Dict[str, MessageSubjectConfig]
     publisher_details: RabbitServerDetails

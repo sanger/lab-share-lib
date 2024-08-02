@@ -1,6 +1,6 @@
 import os
 
-from lab_share_lib.config.rabbit_config import RabbitConfig, ProcessorSchemaConfig
+from lab_share_lib.config.rabbit_config import RabbitConfig, MessageSubjectConfig
 from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 from processors import Example1MessageProcessor
 
@@ -27,7 +27,7 @@ RABBITMQ_SERVERS = [
         # Hash that maps each subject name with a processor class that will be instantiated when
         # we consume a message using that subject name (specified in header from rabbitmq: 'subject')
         message_subjects={
-            "example_1_message": ProcessorSchemaConfig(processor=Example1MessageProcessor, reader_schema_version="1")
+            "example_1_message": MessageSubjectConfig(processor=Example1MessageProcessor, reader_schema_version="1")
         },
     ),
 ]
