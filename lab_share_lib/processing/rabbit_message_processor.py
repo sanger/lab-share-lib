@@ -60,8 +60,8 @@ class RabbitMessageProcessor:
     def process_message(self, headers, body):
         message = RabbitMessage(headers, body)
         subject = message.subject
+        reader_schema_version = self._rabbit_config.message_subjects[subject].reader_schema_version
         try:
-            reader_schema_version = self._rabbit_config.message_subjects[subject].reader_schema_version
             used_encoder = message.decode(
                 self._build_avro_encoders(
                     message.encoder_type,
