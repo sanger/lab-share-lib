@@ -80,7 +80,7 @@ class RabbitMessageProcessor:
             return False  # Send the message to dead letters.
 
         try:
-            used_encoder.validate(message.message, message.writer_schema_version)
+            used_encoder.validate(message.message, message.reader_schema_version)
         except ValidationError as ex:
             LOGGER.error(f"Decoded message failed schema validation: {ex}")
             return False

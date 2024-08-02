@@ -156,7 +156,7 @@ def test_process_message_calls_validate_on_used_encoder(subject, rabbit_message)
 
     subject.process_message(HEADERS, MESSAGE_BODY)
 
-    encoder.validate.assert_called_with(message.message, message.writer_schema_version)
+    encoder.validate.assert_called_with(message.message, message.reader_schema_version)
 
 
 def test_process_message_returns_false_when_validate_raises_validation_error(subject, rabbit_message):
