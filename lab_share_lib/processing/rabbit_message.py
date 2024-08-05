@@ -38,6 +38,7 @@ class RabbitMessage:
         for encoder in possible_encoders:
             try:
                 LOGGER.info(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
+                LOGGER.info(f"Writer schema version: {self.writer_schema_version} and reader schema version: {reader_schema_version}")
                 self._decoded_list = list(
                     encoder.decode(self.encoded_body, self.writer_schema_version, reader_schema_version)
                 )
