@@ -1,5 +1,6 @@
 import logging
 from typing import List
+
 from lab_share_lib.constants import (
     ENCODER_TYPE_BINARY,
     LOGGER_NAME_RABBIT_MESSAGES,
@@ -18,7 +19,6 @@ class RabbitMessage:
     def __init__(self, headers, encoded_body):
         self.headers = headers
         self.encoded_body = encoded_body
-
         self._decoded_list = None
 
     @property
@@ -30,15 +30,17 @@ class RabbitMessage:
         return self.headers[RABBITMQ_HEADER_KEY_SUBJECT]
 
     @property
-    def schema_version(self):
+    def writer_schema_version(self):
         return self.headers[RABBITMQ_HEADER_KEY_VERSION]
 
-    def decode(self, possible_encoders: List[AvroEncoderBase]) -> AvroEncoderBase:
+    def decode(self, possible_encoders: List[AvroEncoderBase], reader_schema_version: str) -> AvroEncoderBase:
         exceptions = []
         for encoder in possible_encoders:
             try:
                 LOGGER.debug(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
-                self._decoded_list = list(encoder.decode(self.encoded_body, self.schema_version))
+                self._decoded_list = list(
+                    encoder.decode(self.encoded_body, self.writer_schema_version, reader_schema_version)
+                )
                 if encoder.encoder_type == ENCODER_TYPE_BINARY:
                     MESSAGE_LOGGER.info(f"Decoded binary message body:\n{self._decoded_list}")
                 return encoder

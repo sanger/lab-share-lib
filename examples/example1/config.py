@@ -1,7 +1,8 @@
-from lab_share_lib.config.rabbit_config import RabbitConfig
+import os
+
+from lab_share_lib.config.rabbit_config import RabbitConfig, MessageSubjectConfig
 from lab_share_lib.config.rabbit_server_details import RabbitServerDetails
 from processors import Example1MessageProcessor
-import os
 
 LOCALHOST = os.getenv("LOCALHOST", "localhost")
 
@@ -25,8 +26,8 @@ RABBITMQ_SERVERS = [
         publisher_details=RABBIT_SERVER_DETAILS,  # The details of the server to create a basic publisher
         # Hash that maps each subject name with a processor class that will be instantiated when
         # we consume a message using that subject name (specified in header from rabbitmq: 'subject')
-        processors={
-            "example_1_message": Example1MessageProcessor,  # The processor class to use for messages with this subject
+        message_subjects={
+            "example_1_message": MessageSubjectConfig(processor=Example1MessageProcessor, reader_schema_version="1")
         },
     ),
 ]
