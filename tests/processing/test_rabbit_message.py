@@ -52,7 +52,7 @@ def test_schema_version_extracts_the_header_correctly(subject):
 def test_decode_populates_decoded_list(subject, valid_decoder):
     subject.decode([valid_decoder], "1")
 
-    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, "1", HEADERS[RABBITMQ_HEADER_KEY_VERSION])
     assert subject._decoded_list == DECODED_LIST
 
 
@@ -71,8 +71,8 @@ def test_decode_returns_the_successful_second_decoder(subject, error_decoder, va
 def test_decode_successfully_decodes_if_second_decoder_works(subject, error_decoder, valid_decoder):
     subject.decode([error_decoder, valid_decoder], "1")
 
-    error_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
-    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, HEADERS[RABBITMQ_HEADER_KEY_VERSION], "1")
+    error_decoder.decode.assert_called_once_with(ENCODED_BODY, "1", HEADERS[RABBITMQ_HEADER_KEY_VERSION])
+    valid_decoder.decode.assert_called_once_with(ENCODED_BODY, "1", HEADERS[RABBITMQ_HEADER_KEY_VERSION])
     assert subject._decoded_list == DECODED_LIST
 
 
