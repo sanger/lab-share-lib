@@ -39,7 +39,7 @@ class RabbitMessage:
             try:
                 LOGGER.debug(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
                 self._decoded_list = list(
-                    encoder.decode(self.encoded_body, self.writer_schema_version, reader_schema_version)
+                    encoder.decode(self.encoded_body, reader_schema_version, self.writer_schema_version)
                 )
                 if encoder.encoder_type == ENCODER_TYPE_BINARY:
                     MESSAGE_LOGGER.info(f"Decoded binary message body:\n{self._decoded_list}")
