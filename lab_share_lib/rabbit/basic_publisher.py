@@ -57,7 +57,7 @@ class BasicPublisher:
             routing_key=routing_key,
             body=message.encoded_body,
             subject=message.subject,
-            schema_version=message.schema_version,
+            schema_version=message.writer_schema_version,
             encoder_type=message.encoder_type,
         )
 
