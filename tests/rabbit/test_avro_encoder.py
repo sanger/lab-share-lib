@@ -137,7 +137,7 @@ class TestAvroEncoderJson:
     def test_decode_decodes_the_message(self, json_subject, fastavro, schema_version):
         fastavro.json_reader.return_value = SCHEMA_DICT
 
-        result = json_subject.decode(MESSAGE_BODY.encode(), schema_version, "1")
+        result = json_subject.decode(MESSAGE_BODY.encode(), "1", schema_version)
 
         fastavro.json_reader.assert_called_once_with(ANY, fastavro.parse_schema.return_value)
         string_reader = fastavro.json_reader.call_args.args[0]
@@ -150,7 +150,7 @@ class TestAvroEncoderJson:
         records = [MESSAGE_BODY]
 
         message = json_subject.encode(records, schema_version)
-        result = json_subject.decode(message.body, schema_version, "1")
+        result = json_subject.decode(message.body, "1", schema_version)
 
         assert list(result) == records
 
@@ -179,7 +179,7 @@ class TestAvroEncoderBinaryFile:
     def test_decode_decodes_the_message(self, binary_file_subject, schema_version, file):
         records = [MESSAGE_BODY]
 
-        result = binary_file_subject.decode(file, schema_version, "1")
+        result = binary_file_subject.decode(file, "1", schema_version)
 
         assert list(result) == records
 
@@ -188,7 +188,7 @@ class TestAvroEncoderBinaryFile:
         records = [MESSAGE_BODY]
 
         message = binary_file_subject.encode(records, schema_version)
-        result = binary_file_subject.decode(message.body, schema_version, "1")
+        result = binary_file_subject.decode(message.body, "1", schema_version)
 
         assert list(result) == records
 
@@ -224,7 +224,7 @@ class TestAvroEncoderBinaryMessage:
     def test_decode_decodes_the_message(self, binary_message_subject, schema_version, message):
         records = [MESSAGE_BODY]
 
-        result = binary_message_subject.decode(message, schema_version, "1")
+        result = binary_message_subject.decode(message, "1", schema_version)
 
         assert result == records
 
@@ -233,7 +233,7 @@ class TestAvroEncoderBinaryMessage:
         records = [MESSAGE_BODY]
 
         message = binary_message_subject.encode(records, schema_version)
-        result = binary_message_subject.decode(message.body, schema_version, "1")
+        result = binary_message_subject.decode(message.body, "1", schema_version)
 
         assert result == records
 
@@ -242,7 +242,7 @@ class TestAvroEncoderBinaryMessage:
         records = [MESSAGE_BODY]
 
         message = binary_message_subject.encode_single_object(records[0], schema_version)
-        result = binary_message_subject.decode(message.body, schema_version, "1")
+        result = binary_message_subject.decode(message.body, "1", schema_version)
 
         assert result == records
 
