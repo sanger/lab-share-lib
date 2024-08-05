@@ -37,7 +37,7 @@ class RabbitMessage:
         exceptions = []
         for encoder in possible_encoders:
             try:
-                LOGGER.debug(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
+                LOGGER.info(f"Attempting to decode message with encoder class '{type(encoder).__name__}'.")
                 self._decoded_list = list(
                     encoder.decode(self.encoded_body, self.writer_schema_version, reader_schema_version)
                 )
