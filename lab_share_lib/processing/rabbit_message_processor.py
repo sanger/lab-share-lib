@@ -65,7 +65,7 @@ class RabbitMessageProcessor:
             reader_schema_version = self._rabbit_config.message_subjects[subject].reader_schema_version
         except KeyError:
             LOGGER.error(
-                f"Unrecoverable error: Subject '{subject}' not configured in the " "'message_subjects' dictionary."
+                f"Unrecoverable error: Subject '{subject}' not configured in the 'message_subjects' dictionary."
             )
             return False
 
