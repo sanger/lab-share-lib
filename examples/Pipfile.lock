@@ -582,11 +582,11 @@
         },
         "python-snappy": {
             "hashes": [
-                "sha256:04bf182f9d9f67b7a846dae2f1df36180ceeee8d3380e4b6799deff5272c4978",
-                "sha256:b4b2c39142064925d5a554672a09de4188fc4f2b2494a2ecb35042930e129444"
+                "sha256:074c0636cfcd97e7251330f428064050ac81a52c62ed884fc2ddebbb60ed7f50",
+                "sha256:40216c1badfb2d38ac781ecb162a1d0ec40f8ee9747e610bcfefdfa79486cee3"
             ],
             "index": "pypi",
-            "version": "==0.7.2"
+            "version": "==0.7.3"
         },
         "requests": {
             "hashes": [
