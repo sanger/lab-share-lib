@@ -36,7 +36,7 @@ class Example1MessageProcessor(BaseProcessor):
         Returning True will acknowledge the message and remove it from the queue.
         """
 
-        print(f"Message read from the queue at { datetime.datetime.now() }:")
+        print(f"Message read from the queue at {datetime.datetime.now()}:")
         print("<<")
         print(message.message)
         print(">>")
