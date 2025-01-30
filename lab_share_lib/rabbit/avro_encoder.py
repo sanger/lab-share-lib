@@ -139,7 +139,7 @@ class AvroEncoderBinaryMessage(AvroEncoderBase):
         ValueError: If the message binary does not start with the expected two-byte marker.
     """
 
-    TWO_BYTE_MARKER = b"\xC3\x01"  # Used to identify single-object Avro encoding.
+    TWO_BYTE_MARKER = b"\xc3\x01"  # Used to identify single-object Avro encoding.
 
     def __init__(self, schema_registry, subject):
         super().__init__(schema_registry, subject)
