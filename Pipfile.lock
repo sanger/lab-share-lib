@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f1fa3e3ef26fbb6b1295c015a8ec9e0f88d00150d0f6f5a1bbeb6cd5680010f8"
+            "sha256": "83855be902971f03a65ec15c6f9244574e4b45dbb6bb729e91441d260450ad66"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.13"
+            "python_version": "3.13.1"
         },
         "sources": [
             {
@@ -335,7 +335,7 @@
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==24.10.0"
+            "version": "==25.1.0"
         },
         "build": {
             "hashes": [
