@@ -7,7 +7,7 @@ from processors import Example1MessageProcessor
 LOCALHOST = os.getenv("LOCALHOST", "localhost")
 
 # REDPANDA_BASE_URI defines the URL where the Redpanda service is running
-REDPANDA_BASE_URI = f"http://{ LOCALHOST }:8081"
+REDPANDA_BASE_URI = f"http://{LOCALHOST}:8081"
 
 # Define one (or more) Rabbit servers to consume from and publish to.
 RABBIT_SERVER_DETAILS = RabbitServerDetails(
