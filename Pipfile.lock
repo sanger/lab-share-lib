@@ -903,12 +903,12 @@
         },
         "types-python-dateutil": {
             "hashes": [
-                "sha256:13e80d6c9c47df23ad773d54b2826bd52dbbb41be87c3f339381c1700ad21ee5",
-                "sha256:2b2b3f57f9c6a61fba26a9c0ffb9ea5681c9b83e69cd897c6b5f668d9c0cab93"
+                "sha256:b9a5232c8921cf7661b29c163ccc56055c418ab2c6eabe8f917cbcc73a4c4157",
+                "sha256:c3826289c170c93ebd8360c3485311187df740166dbab9dd3b792e69f2bc1f9c"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==2.9.0.20250516"
+            "version": "==2.9.0.20251008"
         },
         "types-requests": {
             "hashes": [
